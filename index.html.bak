@@ -1,0 +1,1584 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#000000">
+<title>AI Plan</title>
+<link rel="manifest" href="/static/manifest.json">
+<style>
+/* ========== CSS Variables ========== */
+:root {
+  --bg-primary: #f2f2f7;
+  --bg-secondary: #ffffff;
+  --surface: rgba(0,0,0,0.04);
+  --surface-hover: rgba(0,0,0,0.08);
+  --glass: rgba(255,255,255,0.7);
+  --glass-border: rgba(0,0,0,0.1);
+  --text-primary: #1d1d1f;
+  --text-secondary: #86868b;
+  --text-tertiary: #aeaeb2;
+  --accent: #0a84ff;
+  --accent-glow: rgba(10,132,255,0.3);
+  --success: #30d158;
+  --warning: #ff9f0a;
+  --danger: #ff453a;
+  --bubble-1: rgba(10,132,255,0.15);
+  --bubble-2: rgba(175,82,222,0.12);
+  --bubble-3: rgba(255,159,10,0.10);
+  --bubble-4: rgba(48,209,88,0.10);
+  --bubble-5: rgba(255,69,58,0.08);
+  --bubble-6: rgba(90,200,250,0.10);
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --radius-xl: 28px;
+  --shadow: 0 8px 32px rgba(0,0,0,0.4);
+  --font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', 'PingFang SC', system-ui, sans-serif;
+  --font-mono: 'SF Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
+  --transition: 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+/* ========== Reset & Base ========== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  font-family: var(--font);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+/* ========== Animated Background Bubbles ========== */
+.bg-bubbles {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  z-index: 0;
+  pointer-events: none;
+}
+.bg-bubble {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  will-change: transform;
+}
+.bg-bubble:nth-child(1) {
+  width: 320px; height: 320px;
+  background: radial-gradient(circle, var(--bubble-1), transparent 70%);
+  top: -10%; left: -15%;
+  animation: floatBubble1 18s ease-in-out infinite;
+}
+.bg-bubble:nth-child(2) {
+  width: 260px; height: 260px;
+  background: radial-gradient(circle, var(--bubble-2), transparent 70%);
+  top: 40%; right: -12%;
+  animation: floatBubble2 22s ease-in-out infinite;
+  animation-delay: -5s;
+}
+.bg-bubble:nth-child(3) {
+  width: 280px; height: 280px;
+  background: radial-gradient(circle, var(--bubble-3), transparent 70%);
+  bottom: -10%; left: 20%;
+  animation: floatBubble3 20s ease-in-out infinite;
+  animation-delay: -8s;
+}
+.bg-bubble:nth-child(4) {
+  width: 200px; height: 200px;
+  background: radial-gradient(circle, var(--bubble-4), transparent 70%);
+  top: 20%; left: 50%;
+  animation: floatBubble4 24s ease-in-out infinite;
+  animation-delay: -12s;
+}
+.bg-bubble:nth-child(5) {
+  width: 240px; height: 240px;
+  background: radial-gradient(circle, var(--bubble-5), transparent 70%);
+  top: 60%; right: 30%;
+  animation: floatBubble5 19s ease-in-out infinite;
+  animation-delay: -3s;
+}
+.bg-bubble:nth-child(6) {
+  width: 180px; height: 180px;
+  background: radial-gradient(circle, var(--bubble-6), transparent 70%);
+  top: -5%; right: 40%;
+  animation: floatBubble6 21s ease-in-out infinite;
+  animation-delay: -15s;
+}
+
+@keyframes floatBubble1 {
+  0% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(60px, 100px) scale(1.15); }
+  66% { transform: translate(-30px, 40px) scale(0.9); }
+  100% { transform: translate(20px, -20px) scale(1.05); }
+}
+@keyframes floatBubble2 {
+  0% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(-70px, -60px) scale(1.1); }
+  66% { transform: translate(40px, 80px) scale(0.85); }
+  100% { transform: translate(-20px, 10px) scale(1.08); }
+}
+@keyframes floatBubble3 {
+  0% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(50px, -90px) scale(1.12); }
+  66% { transform: translate(-60px, -30px) scale(0.92); }
+  100% { transform: translate(10px, 30px) scale(1.03); }
+}
+@keyframes floatBubble4 {
+  0% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(-40px, -50px) scale(1.08); }
+  66% { transform: translate(70px, 20px) scale(0.95); }
+  100% { transform: translate(-10px, 40px) scale(1.06); }
+}
+@keyframes floatBubble5 {
+  0% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(80px, 70px) scale(1.05); }
+  66% { transform: translate(-50px, -80px) scale(0.88); }
+  100% { transform: translate(-20px, -10px) scale(1.1); }
+}
+@keyframes floatBubble6 {
+  0% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(-60px, 30px) scale(1.13); }
+  66% { transform: translate(30px, -70px) scale(0.9); }
+  100% { transform: translate(40px, 20px) scale(1.04); }
+}
+
+/* ========== App Container ========== */
+.app {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  max-width: 500px;
+  margin: 0 auto;
+  padding: env(safe-area-inset-top, 20px) 16px env(safe-area-inset-bottom, 16px);
+}
+
+/* ========== Page Transitions ========== */
+.page {
+  display: none;
+  flex-direction: column;
+  height: 100%;
+  animation: pageIn 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+.page.active { display: flex; }
+
+@keyframes pageIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ========== Status Bar Spacer ========== */
+.status-bar {
+  height: 12px;
+  flex-shrink: 0;
+}
+
+/* ========== Typography ========== */
+.title {
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--text-primary);
+}
+.subtitle {
+  font-size: 15px;
+  font-weight: 400;
+  color: var(--text-secondary);
+  margin-top: 6px;
+  line-height: 1.4;
+}
+.section-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 8px;
+}
+
+/* ========== Glass Card ========== */
+.glass-card {
+  background: var(--glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  transition: var(--transition);
+}
+.glass-card:hover {
+  background: var(--surface-hover);
+}
+
+/* ========== Input ========== */
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.input-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: 0.02em;
+}
+.input-field {
+  width: 100%;
+  padding: 14px 16px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  outline: none;
+  transition: var(--transition);
+}
+.input-field::placeholder {
+  color: var(--text-tertiary);
+  font-family: var(--font);
+}
+.input-field:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+  background: rgba(255,255,255,0.08);
+}
+
+/* ========== Buttons ========== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 24px;
+  border: none;
+  border-radius: var(--radius-md);
+  font-family: var(--font);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  letter-spacing: 0.01em;
+  position: relative;
+  overflow: hidden;
+}
+.btn:active { transform: scale(0.97); }
+.btn-primary {
+  background: var(--accent);
+  color: #1d1d1f;
+  width: 100%;
+}
+.btn-primary:hover { opacity: 0.9; }
+.btn-secondary {
+  background: rgba(255,255,255,0.08);
+  color: var(--text-primary);
+  border: 1px solid var(--glass-border);
+}
+.btn-secondary:hover { background: var(--surface-hover); }
+.btn-ghost {
+  background: transparent;
+  color: var(--accent);
+  padding: 8px 16px;
+}
+.btn-ghost:hover { background: rgba(10,132,255,0.1); }
+.btn-sm {
+  padding: 8px 16px;
+  font-size: 13px;
+  border-radius: var(--radius-sm);
+}
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ========== Page 1: API Config ========== */
+.config-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 24px;
+}
+.config-header {
+  text-align: center;
+  margin-bottom: 8px;
+}
+.config-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 16px;
+  background: linear-gradient(135deg, var(--bubble-1), var(--bubble-2));
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+}
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 4px 12px;
+  border-radius: 20px;
+  margin-top: 8px;
+}
+.status-badge.success {
+  background: rgba(48,209,88,0.15);
+  color: var(--success);
+}
+.status-badge.error {
+  background: rgba(255,69,58,0.15);
+  color: var(--danger);
+}
+.status-badge.testing {
+  background: rgba(255,159,10,0.15);
+  color: var(--warning);
+}
+.status-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.status-dot.testing { animation: pulseDot 0.8s ease-in-out infinite; }
+@keyframes pulseDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.7); }
+}
+
+/* ========== Page 2 & 3: Bubble Selection ========== */
+.bubble-select {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  overflow-y: auto;
+  padding-bottom: 16px;
+}
+.bubble-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.bubble-grid.col-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+.bubble-option {
+  position: relative;
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: rgba(255,255,255,0.04);
+  border: 2px solid rgba(255,255,255,0.06);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: var(--transition);
+  overflow: hidden;
+}
+.bubble-option::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: var(--radius-lg);
+  opacity: 0;
+  transition: var(--transition);
+}
+.bubble-option:hover {
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.15);
+  transform: translateY(-2px);
+}
+.bubble-option:active { transform: scale(0.96); }
+
+.bubble-option.selected {
+  background: var(--glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-color: var(--accent);
+  box-shadow: 0 0 24px var(--accent-glow), inset 0 0 24px rgba(10,132,255,0.05);
+}
+.bubble-option.selected::before {
+  opacity: 1;
+  background: linear-gradient(135deg, rgba(10,132,255,0.15), rgba(175,82,222,0.08));
+}
+
+.bubble-icon {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  position: relative;
+  z-index: 1;
+}
+.bubble-icon.blue { background: rgba(10,132,255,0.2); }
+.bubble-icon.purple { background: rgba(175,82,222,0.2); }
+.bubble-icon.orange { background: rgba(255,159,10,0.2); }
+.bubble-icon.green { background: rgba(48,209,88,0.2); }
+.bubble-icon.red { background: rgba(255,69,58,0.2); }
+.bubble-icon.teal { background: rgba(90,200,250,0.2); }
+
+.bubble-option.selected .bubble-icon {
+  animation: breathe 2s ease-in-out infinite;
+}
+@keyframes breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.12); }
+}
+
+.bubble-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  position: relative;
+  z-index: 1;
+  text-align: center;
+}
+.bubble-desc {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text-tertiary);
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  line-height: 1.3;
+}
+.selected-check {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: #1d1d1f;
+  opacity: 0;
+  transform: scale(0.5);
+  transition: var(--transition);
+  z-index: 2;
+}
+.bubble-option.selected .selected-check { opacity: 1; transform: scale(1); }
+
+/* ========== Page 4: Chat ========== */
+.chat-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Chat Header */
+.chat-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 4px 16px;
+  flex-shrink: 0;
+}
+.agent-avatar {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0a84ff, #af52de);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+.agent-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.agent-name {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.agent-tagline {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+/* Chat Messages */
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 8px 4px 16px;
+  scroll-behavior: smooth;
+}
+.chat-messages::-webkit-scrollbar { width: 3px; }
+.chat-messages::-webkit-scrollbar-track { background: transparent; }
+.chat-messages::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.1);
+  border-radius: 3px;
+}
+
+.message {
+  display: flex;
+  flex-direction: column;
+  max-width: 85%;
+  animation: msgIn 0.3s ease-out;
+}
+@keyframes msgIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.message.user { align-self: flex-end; }
+.message.assistant { align-self: flex-start; }
+
+.msg-bubble {
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  font-size: 15px;
+  line-height: 1.5;
+  word-break: break-word;
+}
+.message.user .msg-bubble {
+  background: var(--accent);
+  color: #1d1d1f;
+  border-bottom-right-radius: 4px;
+}
+.message.assistant .msg-bubble {
+  background: var(--glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  color: var(--text-primary);
+  border-bottom-left-radius: 4px;
+}
+
+.msg-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  padding-left: 4px;
+}
+.msg-time {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-top: 4px;
+  padding: 0 4px;
+}
+
+/* Typing Indicator */
+.typing-indicator {
+  display: none;
+  align-self: flex-start;
+  padding: 14px 18px;
+  background: var(--glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  border-bottom-left-radius: 4px;
+  gap: 5px;
+}
+.typing-indicator.active { display: flex; }
+.typing-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--text-tertiary);
+  animation: typingBounce 1.2s ease-in-out infinite;
+}
+.typing-dot:nth-child(2) { animation-delay: 0.15s; }
+.typing-dot:nth-child(3) { animation-delay: 0.3s; }
+@keyframes typingBounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-8px); opacity: 1; }
+}
+
+/* Chat Input */
+.chat-input-area {
+  display: flex;
+  gap: 10px;
+  padding: 8px 0 0;
+  flex-shrink: 0;
+}
+.chat-input {
+  flex: 1;
+  padding: 12px 16px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 24px;
+  color: var(--text-primary);
+  font-family: var(--font);
+  font-size: 15px;
+  outline: none;
+  transition: var(--transition);
+  resize: none;
+  max-height: 100px;
+}
+.chat-input::placeholder { color: var(--text-tertiary); }
+.chat-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+  background: rgba(255,255,255,0.08);
+}
+.send-btn {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: none;
+  color: #1d1d1f;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition);
+  flex-shrink: 0;
+}
+.send-btn:hover { opacity: 0.9; }
+.send-btn:active { transform: scale(0.92); }
+.send-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ========== Pomodoro Widget ========== */
+.pomodoro-widget {
+  position: fixed;
+  bottom: 24px;
+  right: 16px;
+  z-index: 100;
+}
+.pomo-toggle {
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  background: var(--glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  color: var(--text-primary);
+  font-size: 22px;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow);
+}
+.pomo-toggle:hover { background: var(--surface-hover); transform: scale(1.05); }
+.pomo-toggle.running { background: rgba(255,69,58,0.2); border-color: var(--danger); }
+
+.pomo-panel {
+  position: absolute;
+  bottom: 60px;
+  right: 0;
+  width: 200px;
+  background: var(--glass);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  box-shadow: var(--shadow);
+  display: none;
+  flex-direction: column;
+  gap: 12px;
+}
+.pomo-panel.open { display: flex; }
+.pomo-time {
+  font-size: 36px;
+  font-weight: 700;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono);
+  letter-spacing: 0.04em;
+}
+.pomo-label {
+  font-size: 12px;
+  text-align: center;
+  color: var(--text-secondary);
+}
+.pomo-presets {
+  display: flex;
+  gap: 6px;
+}
+.pomo-preset {
+  flex: 1;
+  padding: 6px 4px;
+  border-radius: var(--radius-sm);
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-family: var(--font);
+  cursor: pointer;
+  transition: var(--transition);
+  text-align: center;
+}
+.pomo-preset:hover { background: var(--surface-hover); color: var(--text-primary); }
+.pomo-preset.active {
+  background: rgba(10,132,255,0.15);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.pomo-controls {
+  display: flex;
+  gap: 8px;
+}
+.pomo-controls .btn {
+  flex: 1;
+  padding: 8px;
+  font-size: 13px;
+}
+
+/* ========== Footer Nav ========== */
+.footer-nav {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+  flex-shrink: 0;
+}
+.footer-nav .btn { flex: 1; }
+
+/* ========== Spinner ========== */
+.spinner {
+  width: 20px; height: 20px;
+  border: 2px solid rgba(255,255,255,0.2);
+  border-top-color: #1d1d1f;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  display: inline-block;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ========== Toast ========== */
+.toast-container {
+  position: fixed;
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.toast {
+  padding: 12px 20px;
+  border-radius: var(--radius-md);
+  background: var(--glass);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  border: 1px solid var(--glass-border);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  box-shadow: var(--shadow);
+  animation: toastIn 0.3s ease-out, toastOut 0.3s ease-in forwards;
+  animation-delay: 0s, 2.5s;
+  white-space: nowrap;
+}
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes toastOut {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-10px); }
+}
+
+/* ========== Empty State ========== */
+.empty-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--text-tertiary);
+}
+.empty-icon { font-size: 48px; opacity: 0.5; }
+.empty-text { font-size: 15px; }
+
+/* ========== Responsive ========== */
+@media (max-width: 400px) {
+  .bubble-grid { gap: 8px; }
+  .bubble-label { font-size: 13px; }
+  .bubble-desc { font-size: 10px; }
+  .title { font-size: 28px; }
+}
+@media (min-width: 500px) {
+  .app {
+    border-left: 1px solid var(--glass-border);
+    border-right: 1px solid var(--glass-border);
+  }
+}
+</style>
+<!-- v2 fix encoding -->
+<!-- v3 git-binary-fix -->
+</head>
+<body>
+
+<!-- Background Bubbles -->
+<div class="bg-bubbles">
+  <div class="bg-bubble"></div>
+  <div class="bg-bubble"></div>
+  <div class="bg-bubble"></div>
+  <div class="bg-bubble"></div>
+  <div class="bg-bubble"></div>
+  <div class="bg-bubble"></div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- App -->
+<div class="app" id="app">
+
+  <!-- ========== Page 1: API Config ========== -->
+  <div class="page active" id="pageConfig">
+    <div class="status-bar"></div>
+    <div class="config-section">
+      <div class="config-header">
+        <div class="config-icon">鉁?/div>
+        <h1 class="title">AI Plan</h1>
+        <p class="subtitle">连接你的 AI锛屽紑濮嬫櫤鑳借鍒?/p>
+      </div>
+
+      <div class="glass-card">
+        <div class="input-group">
+          <label class="input-label">DeepSeek API Key</label>
+          <input
+            type="password"
+            class="input-field"
+            id="apiKeyInput"
+            placeholder="sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+            autocomplete="off"
+          >
+        </div>
+
+        <div style="display:flex;gap:10px;margin-top:16px;">
+          <button class="btn btn-secondary btn-sm" id="testBtn" style="flex:1;">
+            测试连接
+          </button>
+          <button class="btn btn-ghost btn-sm" id="toggleKeyBtn" style="flex:0;">
+            馃憗锔?          </button>
+        </div>
+
+        <div id="statusArea" style="margin-top:12px;text-align:center;"></div>
+      </div>
+
+      <div class="footer-nav">
+        <button class="btn btn-primary" id="toPersonalityBtn" disabled>
+          下一步?鈫?        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== Page 2: Personality ========== -->
+  <div class="page" id="pagePersonality">
+    <div class="status-bar"></div>
+    <div class="bubble-select">
+      <div>
+        <h1 class="title">选择鎬ф牸</h1>
+        <p class="subtitle">浣犲笇鏈涗綘鐨?AI 鍔╂墜鏄粈涔堥鏍硷紵</p>
+      </div>
+
+      <div class="bubble-grid" id="personalityGrid">
+        <div class="bubble-option" data-value="friendly">
+          <div class="selected-check">鉁?/div>
+          <div class="bubble-icon blue">馃槉</div>
+          <span class="bubble-label">友好贴心</span>
+          <span class="bubble-desc">娓╂煍缁嗚嚧锛屽叧鎬€澶囪嚦</span>
+        </div>
+        <div class="bubble-option" data-value="professional">
+          <div class="selected-check">鉁?/div>
+          <div class="bubble-icon purple">馃</div>
+          <span class="bubble-label">专业高效</span>
+          <span class="bubble-desc">绮惧噯骞茬粌锛岀洿鍑昏鐐?/span>
+        </div>
+        <div class="bubble-option" data-value="humorous">
+          <div class="selected-check">鉁?/div>
+          <div class="bubble-icon orange">馃槑</div>
+          <span class="bubble-label">幽默风趣</span>
+          <span class="bubble-desc">杞绘澗鎰夊揩锛屽璇繛鐝?/span>
+        </div>
+        <div class="bubble-option" data-value="strict">
+          <div class="selected-check">鉁?/div>
+          <div class="bubble-icon red">馃挭</div>
+          <span class="bubble-label">严厉督促</span>
+          <span class="bubble-desc">閾佽鏁欑粌锛屼娇鍛藉繀杈?/span>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-nav">
+      <button class="btn btn-secondary" id="backToConfigBtn">鈫?杩斿洖</button>
+      <button class="btn btn-primary" id="toPurposeBtn" disabled>下一步?鈫?/button>
+    </div>
+  </div>
+
+  <!-- ========== Page 3: Purpose ========== -->
+  <div class="page" id="pagePurpose">
+    <div class="status-bar"></div>
+    <div class="bubble-select">
+      <div>
+        <h1 class="title">选择鐢ㄩ€?/h1>
+        <p class="subtitle">浣犱富瑕佹兂鐢?AI 甯綘鍋氫粈涔堬紵锛堝彲澶氶€夛級</p>
+      </div>
+
+      <div class="bubble-grid col-3" id="purposeGrid">
+        <div class="bubble-option" data-value="schedule">
+          <div class="selected-check">鉁?/div>
+          <div class="bubble-icon blue">馃搮</div>
+          <span class="bubble-label">日程规划</span>
+        </div>
+        <div class="bubble-option" data-value="study">
+          <div class="selected-check">鉁?/div>
+          <div class="bubble-icon purple">馃摎</div>
+          <span class="bubble-label">学习计划</span>
+        </div>
+        <div class="bubble-option" data-value="fitness">
+          <div class="selected-check">鉁?/div>
+          <div class="bubble-icon green">馃挭</div>
+          <span class="bubble-label">鍋ヨ韩楗</span>
+        </div>
+        <div class="bubble-option" data-value="work">
+          <div class="selected-check">鉁?/div>
+          <div class="bubble-icon orange">馃捈</div>
+          <span class="bubble-label">工作项目</span>
+        </div>
+        <div class="bubble-option" data-value="all">
+          <div class="selected-check">鉁?/div>
+          <div class="bubble-icon teal">馃専</div>
+          <span class="bubble-label">综合全能</span>
+        </div>
+        <div class="bubble-option" data-value="custom" style="border-style:dashed;">
+          <div class="selected-check">鉁?/div>
+          <div class="bubble-icon red">馃幆</div>
+          <span class="bubble-label">鑷畾涔?/span>
+        </div>
+      </div>
+
+      <div id="customPurposeArea" style="display:none;">
+        <input type="text" class="input-field" id="customPurposeInput" placeholder="鎻忚堪浣犵殑闇€姹傗€?>
+      </div>
+    </div>
+
+    <div class="footer-nav">
+      <button class="btn btn-secondary" id="backToPersonalityBtn">鈫?杩斿洖</button>
+      <button class="btn btn-primary" id="toChatBtn" disabled>寮€濮?鈫?/button>
+    </div>
+  </div>
+
+  <!-- ========== Page 4: Chat ========== -->
+  <div class="page" id="pageChat">
+    <div class="chat-container">
+      <div class="chat-header">
+        <div class="agent-avatar" id="chatAvatar">馃</div>
+        <div class="agent-info">
+          <span class="agent-name" id="chatName">AI 鍔╂墜</span>
+          <span class="agent-tagline" id="chatTagline">鍑嗗灏辩华</span>
+        </div>
+        <button class="btn btn-ghost btn-sm" id="resetBtn" style="margin-left:auto;" title="閲嶆柊閰嶇疆">鈿欙笍</button>
+      </div>
+
+      <div class="chat-messages" id="chatMessages">
+        <div class="empty-state">
+          <div class="empty-icon">馃挰</div>
+          <div class="empty-text">鍛婅瘔鎴戜綘鐨勯渶姹傦紝鎴戞潵甯綘瑙勫垝</div>
+        </div>
+      </div>
+
+      <div class="typing-indicator" id="typingIndicator">
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+      </div>
+
+      <div class="chat-input-area">
+        <textarea
+          class="chat-input"
+          id="chatInput"
+          placeholder="杈撳叆浣犵殑闇€姹傗€?
+          rows="1"
+        ></textarea>
+        <button class="send-btn" id="sendBtn">鈫?/button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ========== Pomodoro Widget ========== -->
+<div class="pomodoro-widget" id="pomodoroWidget">
+  <div class="pomo-panel" id="pomoPanel">
+    <div class="pomo-time" id="pomoTime">25:00</div>
+    <div class="pomo-label" id="pomoLabel">鍑嗗涓撴敞</div>
+    <div class="pomo-presets">
+      <button class="pomo-preset active" data-min="25">25鍒?/button>
+      <button class="pomo-preset" data-min="45">45鍒?/button>
+      <button class="pomo-preset" data-min="5">5鍒?/button>
+    </div>
+    <div class="pomo-controls">
+      <button class="btn btn-primary" id="pomoStartBtn">寮€濮?/button>
+      <button class="btn btn-secondary" id="pomoResetBtn">閲嶇疆</button>
+    </div>
+  </div>
+  <button class="pomo-toggle" id="pomoToggle" title="鐣寗閽?>馃崊</button>
+</div>
+
+<!-- ========== Script ========== -->
+<script>
+(function() {
+  'use strict';
+
+  // ========== State ==========
+  const store = {
+    apiKey: localStorage.getItem('aiPlan_apiKey') || '',
+    apiOk: false,
+    personality: localStorage.getItem('aiPlan_personality') || '',
+    purposes: JSON.parse(localStorage.getItem('aiPlan_purposes') || '[]'),
+    messages: [],
+  };
+
+  // ========== DOM Refs ==========
+  const $ = (s) => document.querySelector(s);
+  const $$ = (s) => document.querySelectorAll(s);
+
+  const pages = {
+    config: $('#pageConfig'),
+    personality: $('#pagePersonality'),
+    purpose: $('#pagePurpose'),
+    chat: $('#pageChat'),
+  };
+
+  // ========== Navigation ==========
+  function showPage(name) {
+    Object.values(pages).forEach(p => p.classList.remove('active'));
+    pages[name].classList.add('active');
+    if (name === 'chat') {
+      document.getElementById('pomodoroWidget').style.display = 'block';
+    } else {
+      document.getElementById('pomodoroWidget').style.display = 'none';
+    }
+  }
+
+  // ========== Toast ==========
+  function toast(msg) {
+    const container = $('#toastContainer');
+    const el = document.createElement('div');
+    el.className = 'toast';
+    el.textContent = msg;
+    container.appendChild(el);
+    setTimeout(() => el.remove(), 3000);
+  }
+
+  // ========== Page 1: API Config ==========
+  const apiKeyInput = $('#apiKeyInput');
+  const testBtn = $('#testBtn');
+  const toggleKeyBtn = $('#toggleKeyBtn');
+  const statusArea = $('#statusArea');
+  const toPersonalityBtn = $('#toPersonalityBtn');
+
+  if (store.apiKey) {
+    apiKeyInput.value = store.apiKey;
+  }
+
+  toggleKeyBtn.addEventListener('click', () => {
+    apiKeyInput.type = apiKeyInput.type === 'password' ? 'text' : 'password';
+    toggleKeyBtn.textContent = apiKeyInput.type === 'password' ? '馃憗锔? : '馃檲';
+  });
+
+  apiKeyInput.addEventListener('input', () => {
+    store.apiKey = apiKeyInput.value.trim();
+    store.apiOk = false;
+    updateConfigStatus();
+  });
+
+  testBtn.addEventListener('click', async () => {
+    const key = apiKeyInput.value.trim();
+    if (!key) { toast('璇峰厛杈撳叆 API Key'); return; }
+
+    statusArea.innerHTML = '<span class="status-badge testing"><span class="status-dot testing"></span>娴嬭瘯涓€?/span>';
+    testBtn.disabled = true;
+
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [{ role: 'user', content: 'hi' }],
+          agent_config: {
+            personality: 'friendly',
+            purposes: ['test'],
+            api_key: key
+          }
+        })
+      });
+
+      if (res.ok) {
+        store.apiOk = true;
+        localStorage.setItem('aiPlan_apiKey', key);
+        statusArea.innerHTML = '<span class="status-badge success"><span class="status-dot"></span>杩炴帴鎴愬姛</span>';
+        toast('API 杩炴帴姝ｅ父 鉁?);
+      } else {
+        const err = await res.json().catch(() => ({}));
+        store.apiOk = false;
+        statusArea.innerHTML = `<span class="status-badge error"><span class="status-dot"></span>${err.detail || '杩炴帴澶辫触'}</span>`;
+      }
+    } catch (e) {
+      store.apiOk = false;
+      statusArea.innerHTML = '<span class="status-badge error"><span class="status-dot"></span>缃戠粶閿欒</span>';
+    } finally {
+      testBtn.disabled = false;
+      updateConfigStatus();
+    }
+  });
+
+  function updateConfigStatus() {
+    const hasKey = apiKeyInput.value.trim().length > 0;
+    toPersonalityBtn.disabled = !(hasKey && store.apiOk);
+    if (hasKey && !store.apiOk && !statusArea.innerHTML.includes('娴嬭瘯')) {
+      statusArea.innerHTML = '<span style="font-size:13px;color:var(--text-tertiary);">璇疯緭鍏?Key 骞剁偣鍑?测试连接"</span>';
+    }
+    if (!hasKey) {
+      statusArea.innerHTML = '';
+    }
+  }
+
+  toPersonalityBtn.addEventListener('click', () => {
+    if (!store.apiOk) { toast('璇峰厛娴嬭瘯 API 杩炴帴'); return; }
+    showPage('personality');
+  });
+
+  // Initial check: if previously saved & ok, auto-enable next
+  if (store.apiKey && store.apiOk) {
+    apiKeyInput.value = store.apiKey;
+    statusArea.innerHTML = '<span class="status-badge success"><span class="status-dot"></span>宸蹭繚瀛樼殑 Key</span>';
+  }
+  updateConfigStatus();
+
+  // ========== Page 2: Personality ==========
+  const personalityGrid = $('#personalityGrid');
+  const backToConfigBtn = $('#backToConfigBtn');
+  const toPurposeBtn = $('#toPurposeBtn');
+
+  if (store.personality) {
+    const selected = personalityGrid.querySelector(`[data-value="${store.personality}"]`);
+    if (selected) selected.classList.add('selected');
+    toPurposeBtn.disabled = false;
+  }
+
+  personalityGrid.addEventListener('click', (e) => {
+    const option = e.target.closest('.bubble-option');
+    if (!option) return;
+    personalityGrid.querySelectorAll('.bubble-option').forEach(o => o.classList.remove('selected'));
+    option.classList.add('selected');
+    store.personality = option.dataset.value;
+    localStorage.setItem('aiPlan_personality', store.personality);
+    toPurposeBtn.disabled = false;
+  });
+
+  backToConfigBtn.addEventListener('click', () => showPage('config'));
+  toPurposeBtn.addEventListener('click', () => showPage('purpose'));
+
+  // ========== Page 3: Purpose ==========
+  const purposeGrid = $('#purposeGrid');
+  const customPurposeArea = $('#customPurposeArea');
+  const customPurposeInput = $('#customPurposeInput');
+  const backToPersonalityBtn = $('#backToPersonalityBtn');
+  const toChatBtn = $('#toChatBtn');
+
+  if (store.purposes.length > 0) {
+    store.purposes.forEach(v => {
+      const el = purposeGrid.querySelector(`[data-value="${v}"]`);
+      if (el) el.classList.add('selected');
+    });
+    if (store.purposes.includes('custom')) {
+      customPurposeArea.style.display = 'block';
+    }
+    toChatBtn.disabled = false;
+  }
+
+  purposeGrid.addEventListener('click', (e) => {
+    const option = e.target.closest('.bubble-option');
+    if (!option) return;
+    const val = option.dataset.value;
+
+    if (val === 'custom') {
+      option.classList.toggle('selected');
+      if (option.classList.contains('selected')) {
+        customPurposeArea.style.display = 'block';
+        customPurposeInput.focus();
+      } else {
+        customPurposeArea.style.display = 'none';
+        customPurposeInput.value = '';
+      }
+    } else {
+      option.classList.toggle('selected');
+    }
+
+    updatePurposes();
+  });
+
+  customPurposeInput.addEventListener('input', updatePurposes);
+
+  function updatePurposes() {
+    const selected = [];
+    purposeGrid.querySelectorAll('.bubble-option.selected').forEach(o => selected.push(o.dataset.value));
+    if (selected.includes('custom') && customPurposeInput.value.trim()) {
+      const idx = selected.indexOf('custom');
+      selected[idx] = customPurposeInput.value.trim();
+    }
+    store.purposes = selected;
+    localStorage.setItem('aiPlan_purposes', JSON.stringify(selected));
+    toChatBtn.disabled = selected.length === 0;
+  }
+
+  backToPersonalityBtn.addEventListener('click', () => showPage('personality'));
+
+  toChatBtn.addEventListener('click', () => {
+    initChat();
+    showPage('chat');
+  });
+
+  // ========== Page 4: Chat ==========
+  const chatMessages = $('#chatMessages');
+  const chatInput = $('#chatInput');
+  const sendBtn = $('#sendBtn');
+  const typingIndicator = $('#typingIndicator');
+  const chatAvatar = $('#chatAvatar');
+  const chatName = $('#chatName');
+  const chatTagline = $('#chatTagline');
+
+  const personalityEmoji = {
+    friendly: { emoji: '馃槉', name: '璐村績鍔╂墜', tag: '娓╂煍缁嗚嚧锛屽叧鎬€澶囪嚦' },
+    professional: { emoji: '馃', name: '鏁堢巼涓撳', tag: '绮惧噯骞茬粌锛岀洿鍑昏鐐? },
+    humorous: { emoji: '馃槑', name: '骞介粯浼欎即', tag: '杞绘澗鎰夊揩锛屽璇繛鐝? },
+    strict: { emoji: '馃挭', name: '閾佽鏁欑粌', tag: '涓ユ牸瑕佹眰锛屼娇鍛藉繀杈? },
+  };
+
+  function initChat() {
+    const info = personalityEmoji[store.personality] || { emoji: '馃', name: 'AI 鍔╂墜', tag: '鍑嗗灏辩华' };
+    chatAvatar.textContent = info.emoji;
+    chatName.textContent = info.name;
+    chatTagline.textContent = info.tag;
+
+    // Clear previous messages
+    store.messages = [];
+    chatMessages.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">馃挰</div>
+        <div class="empty-text">鍛婅瘔鎴戜綘鐨勯渶姹傦紝鎴戞潵甯綘瑙勫垝</div>
+      </div>
+    `;
+  }
+
+  chatInput.addEventListener('input', () => {
+    chatInput.style.height = 'auto';
+    chatInput.style.height = Math.min(chatInput.scrollHeight, 100) + 'px';
+    sendBtn.disabled = !chatInput.value.trim();
+  });
+
+  chatInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+
+  sendBtn.addEventListener('click', sendMessage);
+
+  async function sendMessage() {
+    const text = chatInput.value.trim();
+    if (!text) return;
+
+    chatInput.value = '';
+    chatInput.style.height = 'auto';
+    sendBtn.disabled = true;
+
+    // Remove empty state
+    const empty = chatMessages.querySelector('.empty-state');
+    if (empty) empty.remove();
+
+    // Add user message
+    addMessage('user', text);
+    store.messages.push({ role: 'user', content: text });
+
+    // Show typing
+    typingIndicator.classList.add('active');
+    scrollToBottom();
+
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: store.messages,
+          agent_config: {
+            personality: store.personality,
+            purposes: store.purposes,
+            api_key: store.apiKey,
+          }
+        })
+      });
+
+      typingIndicator.classList.remove('active');
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || '璇锋眰澶辫触');
+      }
+
+      const data = await res.json();
+      const reply = data.reply || data.content || data.message || '锛圓I 娌℃湁杩斿洖鍐呭锛?;
+
+      // Parse calendar events from reply if present
+      let events = data.events || [];
+      let replyText = reply.replace(/```json[\s\S]*?```/g, '').replace(/```[\s\S]*?```/g, '').trim();
+
+      addMessage('assistant', replyText, events);
+      store.messages.push({ role: 'assistant', content: reply });
+
+    } catch (e) {
+      typingIndicator.classList.remove('active');
+      addMessage('assistant', '鎶辨瓑锛岃姹傚嚭閿欎簡锛? + e.message, []);
+    }
+  }
+
+  function addMessage(role, text, events = []) {
+    const div = document.createElement('div');
+    div.className = `message ${role}`;
+
+    const time = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+
+    if (role === 'assistant') {
+      div.innerHTML = `
+        <div class="msg-bubble">${escapeHtml(text)}</div>
+        ${events && events.length > 0 ? `
+          <div class="msg-actions">
+            <button class="btn btn-primary btn-sm agree-btn">鉁?鍚屾剰鏂规</button>
+            <button class="btn btn-secondary btn-sm adjust-btn">鉁?璋冩暣</button>
+          </div>
+        ` : ''}
+        <div class="msg-time">${time}</div>
+      `;
+
+      // Bind agree button 鈫?download .ics
+      const agreeBtn = div.querySelector('.agree-btn');
+      if (agreeBtn) {
+        agreeBtn.addEventListener('click', () => downloadCalendar(events));
+      }
+
+      // Bind adjust button
+      const adjustBtn = div.querySelector('.adjust-btn');
+      if (adjustBtn) {
+        adjustBtn.addEventListener('click', () => {
+          chatInput.value = '璇疯皟鏁翠竴涓嬫柟妗堬紝';
+          chatInput.focus();
+          chatInput.dispatchEvent(new Event('input'));
+        });
+      }
+    } else {
+      div.innerHTML = `
+        <div class="msg-bubble">${escapeHtml(text)}</div>
+        <div class="msg-time" style="text-align:right;">${time}</div>
+      `;
+    }
+
+    chatMessages.appendChild(div);
+    scrollToBottom();
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML.replace(/\n/g, '<br>');
+  }
+
+  async function downloadCalendar(events) {
+    try {
+      const res = await fetch('/api/generate_calendar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ events }),
+      });
+
+      if (!res.ok) throw new Error('鐢熸垚澶辫触');
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'ai-plan-calendar.ics';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast('鏃ュ巻宸蹭笅杞?馃搮');
+    } catch (e) {
+      toast('鏃ュ巻鐢熸垚澶辫触锛岃閲嶈瘯');
+    }
+  }
+
+  function scrollToBottom() {
+    requestAnimationFrame(() => {
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    });
+  }
+
+  // ========== Reset ==========
+  $('#resetBtn').addEventListener('click', () => {
+    if (confirm('纭畾瑕侀噸鏂伴厤缃悧锛熷綋鍓嶅璇濆皢涓㈠け銆?)) {
+      store.messages = [];
+      store.apiOk = false;
+      store.personality = '';
+      store.purposes = [];
+      localStorage.removeItem('aiPlan_personality');
+      localStorage.removeItem('aiPlan_purposes');
+      updateConfigStatus();
+      showPage('config');
+    }
+  });
+
+  // ========== Pomodoro ==========
+  const pomoToggle = $('#pomoToggle');
+  const pomoPanel = $('#pomoPanel');
+  const pomoTime = $('#pomoTime');
+  const pomoLabel = $('#pomoLabel');
+  const pomoStartBtn = $('#pomoStartBtn');
+  const pomoResetBtn = $('#pomoResetBtn');
+  const pomoPresets = $$('.pomo-preset');
+
+  let pomoMinutes = 25;
+  let pomoSeconds = 0;
+  let pomoInterval = null;
+  let pomoRunning = false;
+
+  pomoToggle.addEventListener('click', () => {
+    pomoPanel.classList.toggle('open');
+  });
+
+  pomoPresets.forEach(btn => {
+    btn.addEventListener('click', () => {
+      pomoPresets.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      pomoMinutes = parseInt(btn.dataset.min);
+      pomoSeconds = 0;
+      updatePomoDisplay();
+      pomoLabel.textContent = pomoMinutes >= 25 ? '鍑嗗涓撴敞' : '鐭殏浼戞伅';
+      if (pomoRunning) stopPomodoro();
+    });
+  });
+
+  pomoStartBtn.addEventListener('click', () => {
+    if (pomoRunning) {
+      stopPomodoro();
+    } else {
+      startPomodoro();
+    }
+  });
+
+  pomoResetBtn.addEventListener('click', () => {
+    stopPomodoro();
+    const activePreset = document.querySelector('.pomo-preset.active');
+    pomoMinutes = activePreset ? parseInt(activePreset.dataset.min) : 25;
+    pomoSeconds = 0;
+    updatePomoDisplay();
+    pomoLabel.textContent = pomoMinutes >= 25 ? '鍑嗗涓撴敞' : '鐭殏浼戞伅';
+  });
+
+  function startPomodoro() {
+    if (pomoSeconds === 0 && pomoMinutes === 0) {
+      const activePreset = document.querySelector('.pomo-preset.active');
+      pomoMinutes = activePreset ? parseInt(activePreset.dataset.min) : 25;
+    }
+    pomoRunning = true;
+    pomoStartBtn.textContent = '鏆傚仠';
+    pomoLabel.textContent = '涓撴敞涓€?;
+    pomoToggle.classList.add('running');
+
+    pomoInterval = setInterval(() => {
+      if (pomoSeconds === 0) {
+        if (pomoMinutes === 0) {
+          stopPomodoro();
+          pomoLabel.textContent = '瀹屾垚锛侌煄?;
+          toast('鐣寗閽熸椂闂村埌锛佷紤鎭竴涓嬪惂 馃崊');
+          try { new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACAf39/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/fw==').play().catch(()=>{}); } catch(e) {}
+          return;
+        }
+        pomoMinutes--;
+        pomoSeconds = 59;
+      } else {
+        pomoSeconds--;
+      }
+      updatePomoDisplay();
+    }, 1000);
+  }
+
+  function stopPomodoro() {
+    pomoRunning = false;
+    clearInterval(pomoInterval);
+    pomoInterval = null;
+    pomoStartBtn.textContent = '寮€濮?;
+    pomoToggle.classList.remove('running');
+    pomoLabel.textContent = '宸叉殏鍋?;
+  }
+
+  function updatePomoDisplay() {
+    pomoTime.textContent =
+      String(pomoMinutes).padStart(2, '0') + ':' + String(pomoSeconds).padStart(2, '0');
+  }
+
+  updatePomoDisplay();
+
+  // Click outside pomo panel to close
+  document.addEventListener('click', (e) => {
+    if (!pomoPanel.contains(e.target) && e.target !== pomoToggle) {
+      pomoPanel.classList.remove('open');
+    }
+  });
+
+  // ========== Init ==========
+  // If we have all config, jump to chat directly
+  const hasFullConfig = store.apiKey && store.apiOk && store.personality && store.purposes.length > 0;
+  if (hasFullConfig) {
+    initChat();
+    showPage('chat');
+  } else if (store.apiKey) {
+    // Has key but not fully configured
+    apiKeyInput.value = store.apiKey;
+    if (store.apiOk) {
+      statusArea.innerHTML = '<span class="status-badge success"><span class="status-dot"></span>宸蹭繚瀛樼殑 Key</span>';
+    } else {
+      statusArea.innerHTML = '<span style="font-size:13px;color:var(--text-tertiary);">璇烽噸鏂版祴璇曡繛鎺?/span>';
+    }
+    updateConfigStatus();
+  }
+
+  // Auto textarea height
+  chatInput.dispatchEvent(new Event('input'));
+
+  console.log('馃崕 AI Plan App ready');
+})();
+</script>
+
+</body>
+</html>
