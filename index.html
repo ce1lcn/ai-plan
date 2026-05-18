@@ -1,655 +1,655 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="theme-color" content="#f5f5f7">
-<title>AI 智能规划助手</title>
-<style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-:root {
-  --bg: #f5f5f7;
-  --card-bg: rgba(255,255,255,0.72);
-  --card-border: rgba(0,0,0,0.08);
-  --text: #1d1d1f;
-  --text-secondary: #86868b;
-  --accent: #0071e3;
-  --accent-light: #e8f0fe;
-  --red: #ff3b30;
-  --green: #34c759;
-  --orange: #ff9500;
-  --radius: 20px;
-  --shadow: 0 2px 12px rgba(0,0,0,0.06);
-  --shadow-lg: 0 8px 32px rgba(0,0,0,0.10);
-  --font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', 'PingFang SC', sans-serif;
-}
-body {
-  font-family: var(--font);
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100dvh;
-  overflow-x: hidden;
-  -webkit-font-smoothing: antialiased;
-}
-
-/* === Floating Gradient Bubbles === */
-.bubbles { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
-.bubble { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.35; animation: float linear infinite; }
-.bubble:nth-child(1) { width: 320px; height: 320px; background: linear-gradient(135deg, #a8d8ff, #c1b0ff); top: -60px; left: -80px; animation-duration: 18s; }
-.bubble:nth-child(2) { width: 260px; height: 260px; background: linear-gradient(135deg, #ffd4c4, #ffb4d9); top: 40%; right: -100px; animation-duration: 22s; animation-delay: -5s; }
-.bubble:nth-child(3) { width: 200px; height: 200px; background: linear-gradient(135deg, #b4f0c8, #a8e6f5); bottom: -50px; left: 30%; animation-duration: 20s; animation-delay: -10s; }
-.bubble:nth-child(4) { width: 180px; height: 180px; background: linear-gradient(135deg, #ffe5a0, #ffc8a0); top: 20%; left: 50%; animation-duration: 24s; animation-delay: -15s; }
-@keyframes float {
-  0% { transform: translateY(0) translateX(0) scale(1); }
-  25% { transform: translateY(-30px) translateX(20px) scale(1.08); }
-  50% { transform: translateY(-15px) translateX(-15px) scale(0.95); }
-  75% { transform: translateY(-40px) translateX(-25px) scale(1.05); }
-  100% { transform: translateY(0) translateX(0) scale(1); }
-}
-
-/* === Layout === */
-.app-container { position: relative; z-index: 1; max-width: 500px; margin: 0 auto; padding: 24px 16px 100px; min-height: 100dvh; }
-
-/* === Header === */
-.app-header { text-align: center; padding: 30px 0 20px; }
-.app-header .logo { font-size: 48px; margin-bottom: 8px; }
-.app-header h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
-.app-header p { font-size: 15px; color: var(--text-secondary); margin-top: 4px; }
-
-/* === Tab Dots === */
-.tab-dots { display: flex; justify-content: center; gap: 8px; margin-bottom: 24px; }
-.tab-dot { width: 8px; height: 8px; border-radius: 50%; background: #d1d1d6; transition: all 0.3s; }
-.tab-dot.active { background: var(--accent); width: 24px; border-radius: 4px; }
-
-/* === Glass Card === */
-.card {
-  background: var(--card-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--card-border); border-radius: var(--radius);
-  padding: 24px; margin-bottom: 16px; box-shadow: var(--shadow);
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-.card:hover { box-shadow: var(--shadow-lg); }
-
-/* === Inputs === */
-.input-group { margin-bottom: 16px; }
-.input-group label { display: block; font-size: 13px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
-.input-group input {
-  width: 100%; padding: 14px 16px; border: 1.5px solid #e5e5ea; border-radius: 14px;
-  font-family: var(--font); font-size: 16px; background: rgba(255,255,255,0.8);
-  transition: border-color 0.2s, box-shadow 0.2s; outline: none;
-}
-.input-group input:focus {
-  border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,113,227,0.12);
-}
-
-/* === Buttons === */
-.btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-  padding: 14px 24px; border-radius: 14px; font-family: var(--font); font-size: 16px;
-  font-weight: 600; border: none; cursor: pointer; transition: all 0.2s; outline: none;
-}
-.btn-primary { background: var(--accent); color: #fff; width: 100%; }
-.btn-primary:hover { background: #0077ed; transform: translateY(-1px); }
-.btn-primary:active { transform: scale(0.98); }
-.btn-primary:disabled { background: #a1c9f5; cursor: not-allowed; transform: none; }
-.btn-secondary { background: #f2f2f7; color: var(--text); }
-.btn-secondary:hover { background: #e5e5ea; }
-.btn-small { padding: 8px 16px; font-size: 14px; border-radius: 12px; }
-
-/* === Bubbles (selectable) === */
-.bubble-group { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
-.bubble-option {
-  padding: 12px 20px; border-radius: 100px; font-size: 15px; font-weight: 500;
-  background: #f2f2f7; border: 1.5px solid transparent; cursor: pointer;
-  transition: all 0.2s; user-select: none;
-}
-.bubble-option:hover { background: #e8e8ed; }
-.bubble-option.selected { background: var(--accent-light); border-color: var(--accent); color: var(--accent); font-weight: 600; }
-.bubble-option.domain-selected { background: #e8f8ed; border-color: var(--green); color: #1a7a32; font-weight: 600; }
-
-/* === Chat === */
-.chat-container { display: flex; flex-direction: column; gap: 12px; max-height: 50vh; overflow-y: auto; padding-right: 4px; scroll-behavior: smooth; }
-.chat-msg { max-width: 85%; padding: 12px 16px; border-radius: 18px; font-size: 15px; line-height: 1.5; animation: msgIn 0.3s ease; }
-@keyframes msgIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-.chat-msg.user { align-self: flex-end; background: var(--accent); color: #fff; border-bottom-right-radius: 6px; }
-.chat-msg.ai { align-self: flex-start; background: #f2f2f7; color: var(--text); border-bottom-left-radius: 6px; }
-.chat-msg.ai .schedule-card { margin-top: 10px; padding: 12px; background: #fff; border-radius: 12px; border: 1px solid #e5e5ea; }
-.chat-msg.ai .schedule-card h4 { font-size: 14px; color: var(--accent); margin-bottom: 6px; }
-.chat-msg.ai .schedule-card .time-slot { font-size: 13px; color: var(--text-secondary); margin: 3px 0; }
-.chat-input-row { display: flex; gap: 8px; margin-top: 12px; }
-.chat-input-row input { flex: 1; padding: 12px 14px; border: 1.5px solid #e5e5ea; border-radius: 14px; font-family: var(--font); font-size: 15px; outline: none; }
-.chat-input-row input:focus { border-color: var(--accent); }
-.chat-actions { display: flex; gap: 8px; margin-top: 12px; }
-.chat-actions .btn { flex: 1; font-size: 14px; padding: 10px; }
-.btn-approve { background: var(--green); color: #fff; }
-.btn-approve:hover { background: #2db84d; }
-.btn-adjust { background: var(--orange); color: #fff; }
-.btn-adjust:hover { background: #e68600; }
-
-/* === Pomodoro Float Button === */
-.pomodoro-float {
-  position: fixed; bottom: 28px; right: 20px; z-index: 100;
-  width: 56px; height: 56px; border-radius: 50%;
-  background: var(--red); color: #fff; border: none; cursor: pointer;
-  box-shadow: 0 4px 20px rgba(255,59,48,0.35);
-  font-size: 24px; display: flex; align-items: center; justify-content: center;
-  transition: all 0.3s;
-}
-.pomodoro-float:hover { transform: scale(1.08); box-shadow: 0 6px 28px rgba(255,59,48,0.45); }
-.pomodoro-float.running { background: var(--green); box-shadow: 0 4px 20px rgba(52,199,89,0.35); animation: pulse 2s infinite; }
-@keyframes pulse { 0%, 100% { box-shadow: 0 4px 20px rgba(52,199,89,0.35); } 50% { box-shadow: 0 4px 36px rgba(52,199,89,0.55); } }
-
-/* === Pomodoro Modal === */
-.pomodoro-modal {
-  position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,0.35);
-  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
-  display: flex; align-items: center; justify-content: center;
-  animation: fadeIn 0.3s;
-}
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-.pomodoro-modal.hidden { display: none; }
-.pomodoro-card {
-  background: #fff; border-radius: 28px; padding: 32px; text-align: center;
-  width: 300px; box-shadow: 0 20px 60px rgba(0,0,0,0.15);
-}
-.pomodoro-card .timer-display { font-size: 64px; font-weight: 200; letter-spacing: -2px; margin: 16px 0; font-variant-numeric: tabular-nums; }
-.pomodoro-card .timer-label { font-size: 14px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; }
-.pomodoro-card .timer-btns { display: flex; gap: 10px; margin-top: 20px; }
-.pomodoro-card .timer-btns .btn { flex: 1; }
-
-/* === Status Badge === */
-.status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 100px; font-size: 13px; font-weight: 500; }
-.status-badge.success { background: #e8f8ed; color: #1a7a32; }
-.status-badge.error { background: #ffe5e5; color: #c41e1e; }
-.status-badge.info { background: var(--accent-light); color: var(--accent); }
-
-/* === Step Bar === */
-.steps { display: flex; gap: 4px; margin-bottom: 24px; }
-.step { flex: 1; height: 3px; border-radius: 2px; background: #e5e5ea; transition: background 0.3s; }
-.step.done { background: var(--accent); }
-
-/* === Toast === */
-.toast {
-  position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 300;
-  padding: 12px 24px; border-radius: 100px; font-size: 14px; font-weight: 500;
-  background: #1d1d1f; color: #fff; box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-  animation: toastIn 0.4s ease;
-}
-@keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(-12px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
-
-/* Scrollbar */
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-thumb { background: #d1d1d6; border-radius: 2px; }
-
-/* Responsive */
-@media (max-width: 400px) {
-  .app-container { padding: 16px 12px 90px; }
-  .app-header h1 { font-size: 24px; }
-  .pomodoro-card { width: 260px; padding: 24px; }
-  .pomodoro-card .timer-display { font-size: 52px; }
-}
-</style>
-</head>
-<body>
-
-<!-- Gradient Bubbles -->
-<div class="bubbles">
-  <div class="bubble"></div><div class="bubble"></div><div class="bubble"></div><div class="bubble"></div>
-</div>
-
-<!-- Toast -->
-<div id="toast" class="toast" style="display:none"></div>
-
-<!-- Pomodoro Float Button -->
-<button class="pomodoro-float" id="pomodoroFloatBtn" onclick="togglePomodoro()" title="番茄钟">&#x1F345;</button>
-
-<!-- Pomodoro Modal -->
-<div class="pomodoro-modal hidden" id="pomodoroModal">
-  <div class="pomodoro-card">
-    <div class="timer-label" id="timerLabel">专注时间</div>
-    <div class="timer-display" id="timerDisplay">25:00</div>
-    <div class="timer-btns">
-      <button class="btn btn-primary" id="timerToggleBtn" onclick="toggleTimer()">开始</button>
-      <button class="btn btn-secondary" onclick="togglePomodoro()">关闭</button>
-    </div>
-    <div style="margin-top:12px;font-size:13px;color:var(--text-secondary)">
-      已完成: <span id="pomodoroCount">0</span> 个番茄
-    </div>
-  </div>
-</div>
-
-<!-- App Container -->
-<div class="app-container">
-  <!-- Header -->
-  <div class="app-header">
-    <div class="logo">&#x2728;</div>
-    <h1>AI 智能规划助手</h1>
-    <p>你的专属 AI 日程规划师</p>
-  </div>
-
-  <!-- Step Dots -->
-  <div class="tab-dots" id="tabDots">
-    <div class="tab-dot active"></div><div class="tab-dot"></div><div class="tab-dot"></div><div class="tab-dot"></div>
-  </div>
-
-  <!-- Step Bar -->
-  <div class="steps" id="stepBar">
-    <div class="step done" id="step1"></div><div class="step" id="step2"></div><div class="step" id="step3"></div><div class="step" id="step4"></div>
-  </div>
-
-  <!-- PAGE 1: API Config -->
-  <div class="card" id="page1">
-    <h2 style="font-size:20px;font-weight:700;margin-bottom:4px">&#x1F511; 连接 AI</h2>
-    <p style="font-size:14px;color:var(--text-secondary);margin-bottom:16px">输入你的 DeepSeek API Key 开始使用</p>
-    <div class="input-group">
-      <label>DeepSeek API Key</label>
-      <input type="password" id="apiKeyInput" placeholder="sk-xxxxxxxxxxxxxxxx" autocomplete="off">
-    </div>
-    <div style="margin-bottom:12px">
-      <span id="connStatus" style="font-size:13px"></span>
-    </div>
-    <button class="btn btn-primary" id="testConnBtn" onclick="testConnection()">&#x1F517; 测试连接</button>
-    <button class="btn btn-primary" id="nextToPersonalityBtn" style="margin-top:8px;display:none" onclick="goToPage(2)">下一步 →</button>
-  </div>
-
-  <!-- PAGE 2: Personality -->
-  <div class="card" id="page2" style="display:none">
-    <h2 style="font-size:20px;font-weight:700;margin-bottom:4px">&#x1F3AD; 选择 AI 性格</h2>
-    <p style="font-size:14px;color:var(--text-secondary);margin-bottom:16px">选择一个你喜欢的 AI 交互风格</p>
-    <div class="bubble-group" id="personalityGroup">
-      <div class="bubble-option" onclick="selectPersonality(this, '友好贴心')">&#x1F917; 友好贴心</div>
-      <div class="bubble-option" onclick="selectPersonality(this, '专业高效')">&#x26A1; 专业高效</div>
-      <div class="bubble-option" onclick="selectPersonality(this, '幽默风趣')">&#x1F604; 幽默风趣</div>
-      <div class="bubble-option" onclick="selectPersonality(this, '严厉督促')">&#x1F3AF; 严厉督促</div>
-    </div>
-    <div style="display:flex;gap:8px;margin-top:16px">
-      <button class="btn btn-secondary" onclick="goToPage(1)">&#x2190; 上一步</button>
-      <button class="btn btn-primary" id="nextToDomainBtn" onclick="goToPage(3)" style="flex:1" disabled>下一步 →</button>
-    </div>
-  </div>
-
-  <!-- PAGE 3: Domain -->
-  <div class="card" id="page3" style="display:none">
-    <h2 style="font-size:20px;font-weight:700;margin-bottom:4px">&#x1F4CB; 选择领域</h2>
-    <p style="font-size:14px;color:var(--text-secondary);margin-bottom:16px">选择你需要 AI 辅助的领域（可多选）</p>
-    <div class="bubble-group" id="domainGroup">
-      <div class="bubble-option" onclick="toggleDomain(this, '日程规划')">&#x1F4C5; 日程规划</div>
-      <div class="bubble-option" onclick="toggleDomain(this, '学习计划')">&#x1F4DA; 学习计划</div>
-      <div class="bubble-option" onclick="toggleDomain(this, '健身饮食')">&#x1F4AA; 健身饮食</div>
-      <div class="bubble-option" onclick="toggleDomain(this, '工作项目')">&#x1F4BC; 工作项目</div>
-      <div class="bubble-option" onclick="toggleDomain(this, '综合全能')">&#x1F31F; 综合全能</div>
-    </div>
-    <div style="display:flex;gap:8px;margin-top:16px">
-      <button class="btn btn-secondary" onclick="goToPage(2)">&#x2190; 上一步</button>
-      <button class="btn btn-primary" id="startChatBtn" onclick="goToPage(4)" style="flex:1" disabled>开始对话 →</button>
-    </div>
-  </div>
-
-  <!-- PAGE 4: Chat -->
-  <div class="card" id="page4" style="display:none">
-    <h2 style="font-size:20px;font-weight:700;margin-bottom:12px">&#x1F4AC; AI 规划助手</h2>
-    <div class="chat-container" id="chatContainer">
-      <div class="chat-msg ai">
-        &#x1F44B; 你好！我是你的<span id="chatPersonality">AI 规划助手</span>。<br>
-        我会帮你制定<span id="chatDomains">日程计划</span>。请告诉我你想怎么安排今天，或者直接说「帮我规划今天」！
-      </div>
-    </div>
-    <div class="chat-input-row">
-      <input type="text" id="chatInput" placeholder="输入你的需求..." onkeydown="if(event.key==='Enter')sendMessage()">
-      <button class="btn btn-primary btn-small" onclick="sendMessage()">发送</button>
-    </div>
-    <div class="chat-actions" id="chatActions" style="display:none">
-      <button class="btn btn-approve" onclick="approveSchedule()">&#x2705; 采纳此计划</button>
-      <button class="btn btn-adjust" onclick="adjustSchedule()">&#x1F504; 调整计划</button>
-    </div>
-    <div style="margin-top:12px">
-      <button class="btn btn-secondary btn-small" onclick="goToPage(3)" style="width:auto;font-size:14px">&#x2190; 重新配置</button>
-    </div>
-  </div>
-</div>
-
-<script>
-// === State ===
-var STATE = {
-  apiKey: localStorage.getItem('deepseek_api_key') || '',
-  apiVerified: false,
-  personality: localStorage.getItem('ai_personality') || '',
-  domains: JSON.parse(localStorage.getItem('ai_domains') || '[]'),
-  currentPage: 1,
-  scheduleGenerated: false,
-  currentSchedule: '',
-  pomodoroRunning: false,
-  pomodoroTime: 25 * 60,
-  pomodoroInterval: null,
-  pomodoroIsBreak: false,
-  pomodoroCount: parseInt(localStorage.getItem('pomodoro_count') || '0')
-};
-
-// === Init ===
-function init() {
-  if (STATE.apiKey) {
-    document.getElementById('apiKeyInput').value = STATE.apiKey;
-    document.getElementById('testConnBtn').click();
-  }
-  document.getElementById('pomodoroCount').textContent = STATE.pomodoroCount;
-  updateTimerDisplay();
-}
-init();
-
-// === Navigation ===
-function goToPage(page) {
-  if (page === 2 && !STATE.apiVerified) {
-    showToast('请先连接 API Key');
-    return;
-  }
-  if (page === 3 && !STATE.personality) {
-    showToast('请先选择 AI 性格');
-    return;
-  }
-  if (page === 4 && STATE.domains.length === 0) {
-    showToast('请至少选择一个领域');
-    return;
-  }
-  if (page === 4) {
-    updateChatGreeting();
-  }
-  STATE.currentPage = page;
-  for (var i = 1; i <= 4; i++) {
-    var el = document.getElementById('page' + i);
-    if (el) el.style.display = i === page ? '' : 'none';
-  }
-  updateDots(page);
-  updateSteps(page);
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-function updateDots(page) {
-  var dots = document.querySelectorAll('.tab-dot');
-  for (var i = 0; i < dots.length; i++) {
-    dots[i].classList.toggle('active', i + 1 === page);
-  }
-}
-
-function updateSteps(page) {
-  for (var i = 1; i <= 4; i++) {
-    var el = document.getElementById('step' + i);
-    if (el) el.classList.toggle('done', i <= page);
-  }
-}
-
-// === Toast ===
-var toastTimer = null;
-function showToast(msg) {
-  var t = document.getElementById('toast');
-  t.textContent = msg;
-  t.style.display = 'block';
-  if (toastTimer) clearTimeout(toastTimer);
-  toastTimer = setTimeout(function() { t.style.display = 'none'; }, 2500);
-}
-
-// === API Connection ===
-function testConnection() {
-  var key = document.getElementById('apiKeyInput').value.trim();
-  if (!key) { showToast('请输入 API Key'); return; }
-  var btn = document.getElementById('testConnBtn');
-  var status = document.getElementById('connStatus');
-  btn.disabled = true;
-  btn.textContent = '正在测试...';
-  status.innerHTML = '<span class="status-badge info">检测中...</span>';
-
-  var xhr = new XMLHttpRequest();
-  xhr.open('POST', 'https://api.deepseek.com/v1/chat/completions', true);
-  xhr.setRequestHeader('Content-Type', 'application/json');
-  xhr.setRequestHeader('Authorization', 'Bearer ' + key);
-  xhr.onload = function() {
-    btn.disabled = false;
-    btn.textContent = '测试连接';
-    if (xhr.status === 200) {
-      STATE.apiKey = key;
-      STATE.apiVerified = true;
-      localStorage.setItem('deepseek_api_key', key);
-      status.innerHTML = '<span class="status-badge success">连接成功</span>';
-      document.getElementById('nextToPersonalityBtn').style.display = '';
-      showToast('API 连接成功！');
-    } else {
-      var msg = '连接失败';
-      try { var err = JSON.parse(xhr.responseText); msg = err.error && err.error.message ? err.error.message : msg; } catch(e) {}
-      status.innerHTML = '<span class="status-badge error">' + msg + '</span>';
-      STATE.apiVerified = false;
-    }
-  };
-  xhr.onerror = function() {
-    btn.disabled = false;
-    btn.textContent = '测试连接';
-    status.innerHTML = '<span class="status-badge error">网络错误</span>';
-    STATE.apiVerified = false;
-  };
-  xhr.send(JSON.stringify({ model: 'deepseek-chat', messages: [{ role: 'user', content: 'hi' }], max_tokens: 5 }));
-}
-
-// === Personality ===
-function selectPersonality(el, name) {
-  var opts = document.querySelectorAll('#personalityGroup .bubble-option');
-  for (var i = 0; i < opts.length; i++) { opts[i].classList.remove('selected'); }
-  el.classList.add('selected');
-  STATE.personality = name;
-  localStorage.setItem('ai_personality', name);
-  document.getElementById('nextToDomainBtn').disabled = false;
-}
-
-// === Domain ===
-function toggleDomain(el, name) {
-  if (el.classList.contains('domain-selected')) {
-    el.classList.remove('domain-selected');
-    STATE.domains = STATE.domains.filter(function(d) { return d !== name; });
-  } else {
-    el.classList.add('domain-selected');
-    STATE.domains.push(name);
-  }
-  localStorage.setItem('ai_domains', JSON.stringify(STATE.domains));
-  document.getElementById('startChatBtn').disabled = STATE.domains.length === 0;
-}
-
-// === Chat ===
-function updateChatGreeting() {
-  document.getElementById('chatPersonality').textContent = STATE.personality || 'AI 规划助手';
-  document.getElementById('chatDomains').textContent = STATE.domains.join('、') || '日程计划';
-}
-
-function getSystemPrompt() {
-  var prompts = {
-    '友好贴心': '你是一位友好贴心的 AI 规划助手。语气温暖、鼓励，多用 emoji 和关怀的话语。',
-    '专业高效': '你是一位专业高效的 AI 规划助手。语气干练、精准，直击要点，用语简洁专业。',
-    '幽默风趣': '你是一位幽默风趣的 AI 规划助手。语气轻松活泼，偶尔开个小玩笑，让规划变得有趣。',
-    '严厉督促': '你是一位严厉督促的 AI 规划助手。语气严格但不刻薄，像私人教练一样督促用户执行计划。'
-  };
-  var domains = STATE.domains.join('、');
-  return (prompts[STATE.personality] || '') +
-    '用户关注的领域：' + domains + '。' +
-    '当用户提出日程规划需求时，请以 JSON 格式返回一个日程表。格式：' +
-    '{"schedule":[{"time":"08:00-09:00","task":"任务名称","detail":"详细说明"}],"summary":"总结建议"}。' +
-    '如果用户没有明确说需要日程表，就正常对话。请用中文回复。';
-}
-
-function sendMessage() {
-  var input = document.getElementById('chatInput');
-  var msg = input.value.trim();
-  if (!msg) return;
-  if (!STATE.apiKey) { showToast('请先配置 API Key'); return; }
-
-  addChatMsg(msg, 'user');
-  input.value = '';
-
-  var thinkingDiv = addChatMsg('思考中...', 'ai');
-
-  var xhr = new XMLHttpRequest();
-  xhr.open('POST', 'https://api.deepseek.com/v1/chat/completions', true);
-  xhr.setRequestHeader('Content-Type', 'application/json');
-  xhr.setRequestHeader('Authorization', 'Bearer ' + STATE.apiKey);
-  xhr.onload = function() {
-    thinkingDiv.remove();
-    if (xhr.status === 200) {
-      var data = JSON.parse(xhr.responseText);
-      var reply = data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content : '抱歉，我暂时无法回复。';
-      processAIReply(reply);
-    } else {
-      addChatMsg('请求失败，请检查网络或 API Key。', 'ai');
-    }
-  };
-  xhr.onerror = function() {
-    thinkingDiv.remove();
-    addChatMsg('网络错误，请检查连接后重试。', 'ai');
-  };
-  var messages = [
-    { role: 'system', content: getSystemPrompt() },
-    { role: 'user', content: msg }
-  ];
-  xhr.send(JSON.stringify({ model: 'deepseek-chat', messages: messages, temperature: 0.7, max_tokens: 2000 }));
-}
-
-function processAIReply(reply) {
-  var jsonMatch = reply.match(/\{[\s\S]*"schedule"[\s\S]*\}/);
-  var scheduleJson = null;
-  if (jsonMatch) {
-    try { scheduleJson = JSON.parse(jsonMatch[0]); } catch(e) {}
-  }
-  if (scheduleJson && scheduleJson.schedule) {
-    STATE.currentSchedule = JSON.stringify(scheduleJson);
-    STATE.scheduleGenerated = true;
-    var textPart = reply.replace(jsonMatch[0], '');
-    if (!textPart.trim()) textPart = '以下是我为你制定的日程安排：';
-    addChatMsg(textPart + renderScheduleCard(scheduleJson), 'ai');
-    document.getElementById('chatActions').style.display = 'flex';
-  } else {
-    addChatMsg(reply, 'ai');
-    document.getElementById('chatActions').style.display = 'none';
-  }
-}
-
-function renderScheduleCard(schedule) {
-  var html = '<div class="schedule-card"><h4>' + (schedule.summary || '日程安排') + '</h4>';
-  for (var i = 0; i < schedule.schedule.length; i++) {
-    var s = schedule.schedule[i];
-    html += '<div class="time-slot"><strong>' + s.time + '</strong> — ' + s.task;
-    if (s.detail) html += ' <span style="color:#86868b">(' + s.detail + ')</span>';
-    html += '</div>';
-  }
-  html += '</div>';
-  return html;
-}
-
-function addChatMsg(text, role) {
-  var container = document.getElementById('chatContainer');
-  var div = document.createElement('div');
-  div.className = 'chat-msg ' + role;
-  div.innerHTML = text;
-  container.appendChild(div);
-  container.scrollTop = container.scrollHeight;
-  return div;
-}
-
-function approveSchedule() {
-  addChatMsg('太好了！我已经采纳了这个计划，会按照安排执行。' + String.fromCodePoint(0x1F4AA), 'user');
-  document.getElementById('chatActions').style.display = 'none';
-  STATE.scheduleGenerated = false;
-  showToast('计划已采纳！加油！');
-}
-
-function adjustSchedule() {
-  addChatMsg('请帮我调整一下这个计划。', 'user');
-  document.getElementById('chatActions').style.display = 'none';
-}
-
-// === Pomodoro Timer ===
-function togglePomodoro() {
-  var modal = document.getElementById('pomodoroModal');
-  modal.classList.toggle('hidden');
-}
-
-function updateTimerDisplay() {
-  var mins = Math.floor(STATE.pomodoroTime / 60);
-  var secs = STATE.pomodoroTime % 60;
-  document.getElementById('timerDisplay').textContent =
-    String(mins).padStart ? String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0') :
-    (mins < 10 ? '0' : '') + mins + ':' + (secs < 10 ? '0' : '') + secs;
-}
-
-function toggleTimer() {
-  if (STATE.pomodoroRunning) {
-    clearInterval(STATE.pomodoroInterval);
-    STATE.pomodoroRunning = false;
-    document.getElementById('timerToggleBtn').textContent = '开始';
-    document.getElementById('pomodoroFloatBtn').classList.remove('running');
-  } else {
-    STATE.pomodoroRunning = true;
-    document.getElementById('timerToggleBtn').textContent = '暂停';
-    document.getElementById('pomodoroFloatBtn').classList.add('running');
-    STATE.pomodoroInterval = setInterval(function() {
-      STATE.pomodoroTime--;
-      updateTimerDisplay();
-      if (STATE.pomodoroTime <= 0) {
-        clearInterval(STATE.pomodoroInterval);
-        STATE.pomodoroRunning = false;
-        document.getElementById('timerToggleBtn').textContent = '开始';
-        document.getElementById('pomodoroFloatBtn').classList.remove('running');
-        if (STATE.pomodoroIsBreak) {
-          STATE.pomodoroTime = 25 * 60;
-          STATE.pomodoroIsBreak = false;
-          document.getElementById('timerLabel').textContent = '专注时间';
-          showToast('休息结束，开始专注！');
-        } else {
-          STATE.pomodoroCount++;
-          localStorage.setItem('pomodoro_count', STATE.pomodoroCount);
-          document.getElementById('pomodoroCount').textContent = STATE.pomodoroCount;
-          STATE.pomodoroTime = 5 * 60;
-          STATE.pomodoroIsBreak = true;
-          document.getElementById('timerLabel').textContent = '休息时间';
-          showToast('专注完成！休息一下吧');
-        }
-        updateTimerDisplay();
-        setTimeout(function() {
-          if (!STATE.pomodoroRunning && !document.getElementById('pomodoroModal').classList.contains('hidden')) {
-            toggleTimer();
-          }
-        }, 2000);
-      }
-    }, 1000);
-  }
-}
-
-// === Keyboard shortcut ===
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') {
-    var modal = document.getElementById('pomodoroModal');
-    if (!modal.classList.contains('hidden')) modal.classList.add('hidden');
-  }
-});
-
-// === Restore state ===
-(function() {
-  if (STATE.personality) {
-    var opts = document.querySelectorAll('#personalityGroup .bubble-option');
-    for (var i = 0; i < opts.length; i++) {
-      if (opts[i].textContent.indexOf(STATE.personality) >= 0) opts[i].classList.add('selected');
-    }
-    document.getElementById('nextToDomainBtn').disabled = false;
-  }
-  if (STATE.domains.length > 0) {
-    var dopts = document.querySelectorAll('#domainGroup .bubble-option');
-    for (var i = 0; i < dopts.length; i++) {
-      for (var j = 0; j < STATE.domains.length; j++) {
-        if (dopts[i].textContent.indexOf(STATE.domains[j]) >= 0) dopts[i].classList.add('domain-selected');
-      }
-    }
-    document.getElementById('startChatBtn').disabled = false;
-  }
-  if (STATE.apiVerified) {
-    document.getElementById('nextToPersonalityBtn').style.display = '';
-    document.getElementById('connStatus').innerHTML = '<span class="status-badge success">已保存的 Key</span>';
-  }
-})();
-</script>
-</body>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#f5f5f7">
+<title>AI 智能规划助手</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #f5f5f7;
+  --card-bg: rgba(255,255,255,0.72);
+  --card-border: rgba(0,0,0,0.08);
+  --text: #1d1d1f;
+  --text-secondary: #86868b;
+  --accent: #0071e3;
+  --accent-light: #e8f0fe;
+  --red: #ff3b30;
+  --green: #34c759;
+  --orange: #ff9500;
+  --radius: 20px;
+  --shadow: 0 2px 12px rgba(0,0,0,0.06);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.10);
+  --font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', 'PingFang SC', sans-serif;
+}
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100dvh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* === Floating Gradient Bubbles === */
+.bubbles { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+.bubble { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.35; animation: float linear infinite; }
+.bubble:nth-child(1) { width: 320px; height: 320px; background: linear-gradient(135deg, #a8d8ff, #c1b0ff); top: -60px; left: -80px; animation-duration: 18s; }
+.bubble:nth-child(2) { width: 260px; height: 260px; background: linear-gradient(135deg, #ffd4c4, #ffb4d9); top: 40%; right: -100px; animation-duration: 22s; animation-delay: -5s; }
+.bubble:nth-child(3) { width: 200px; height: 200px; background: linear-gradient(135deg, #b4f0c8, #a8e6f5); bottom: -50px; left: 30%; animation-duration: 20s; animation-delay: -10s; }
+.bubble:nth-child(4) { width: 180px; height: 180px; background: linear-gradient(135deg, #ffe5a0, #ffc8a0); top: 20%; left: 50%; animation-duration: 24s; animation-delay: -15s; }
+@keyframes float {
+  0% { transform: translateY(0) translateX(0) scale(1); }
+  25% { transform: translateY(-30px) translateX(20px) scale(1.08); }
+  50% { transform: translateY(-15px) translateX(-15px) scale(0.95); }
+  75% { transform: translateY(-40px) translateX(-25px) scale(1.05); }
+  100% { transform: translateY(0) translateX(0) scale(1); }
+}
+
+/* === Layout === */
+.app-container { position: relative; z-index: 1; max-width: 500px; margin: 0 auto; padding: 24px 16px 100px; min-height: 100dvh; }
+
+/* === Header === */
+.app-header { text-align: center; padding: 30px 0 20px; }
+.app-header .logo { font-size: 48px; margin-bottom: 8px; }
+.app-header h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
+.app-header p { font-size: 15px; color: var(--text-secondary); margin-top: 4px; }
+
+/* === Tab Dots === */
+.tab-dots { display: flex; justify-content: center; gap: 8px; margin-bottom: 24px; }
+.tab-dot { width: 8px; height: 8px; border-radius: 50%; background: #d1d1d6; transition: all 0.3s; }
+.tab-dot.active { background: var(--accent); width: 24px; border-radius: 4px; }
+
+/* === Glass Card === */
+.card {
+  background: var(--card-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--card-border); border-radius: var(--radius);
+  padding: 24px; margin-bottom: 16px; box-shadow: var(--shadow);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.card:hover { box-shadow: var(--shadow-lg); }
+
+/* === Inputs === */
+.input-group { margin-bottom: 16px; }
+.input-group label { display: block; font-size: 13px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+.input-group input {
+  width: 100%; padding: 14px 16px; border: 1.5px solid #e5e5ea; border-radius: 14px;
+  font-family: var(--font); font-size: 16px; background: rgba(255,255,255,0.8);
+  transition: border-color 0.2s, box-shadow 0.2s; outline: none;
+}
+.input-group input:focus {
+  border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,113,227,0.12);
+}
+
+/* === Buttons === */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 14px 24px; border-radius: 14px; font-family: var(--font); font-size: 16px;
+  font-weight: 600; border: none; cursor: pointer; transition: all 0.2s; outline: none;
+}
+.btn-primary { background: var(--accent); color: #fff; width: 100%; }
+.btn-primary:hover { background: #0077ed; transform: translateY(-1px); }
+.btn-primary:active { transform: scale(0.98); }
+.btn-primary:disabled { background: #a1c9f5; cursor: not-allowed; transform: none; }
+.btn-secondary { background: #f2f2f7; color: var(--text); }
+.btn-secondary:hover { background: #e5e5ea; }
+.btn-small { padding: 8px 16px; font-size: 14px; border-radius: 12px; }
+
+/* === Bubbles (selectable) === */
+.bubble-group { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
+.bubble-option {
+  padding: 12px 20px; border-radius: 100px; font-size: 15px; font-weight: 500;
+  background: #f2f2f7; border: 1.5px solid transparent; cursor: pointer;
+  transition: all 0.2s; user-select: none;
+}
+.bubble-option:hover { background: #e8e8ed; }
+.bubble-option.selected { background: var(--accent-light); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+.bubble-option.domain-selected { background: #e8f8ed; border-color: var(--green); color: #1a7a32; font-weight: 600; }
+
+/* === Chat === */
+.chat-container { display: flex; flex-direction: column; gap: 12px; max-height: 50vh; overflow-y: auto; padding-right: 4px; scroll-behavior: smooth; }
+.chat-msg { max-width: 85%; padding: 12px 16px; border-radius: 18px; font-size: 15px; line-height: 1.5; animation: msgIn 0.3s ease; }
+@keyframes msgIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.chat-msg.user { align-self: flex-end; background: var(--accent); color: #fff; border-bottom-right-radius: 6px; }
+.chat-msg.ai { align-self: flex-start; background: #f2f2f7; color: var(--text); border-bottom-left-radius: 6px; }
+.chat-msg.ai .schedule-card { margin-top: 10px; padding: 12px; background: #fff; border-radius: 12px; border: 1px solid #e5e5ea; }
+.chat-msg.ai .schedule-card h4 { font-size: 14px; color: var(--accent); margin-bottom: 6px; }
+.chat-msg.ai .schedule-card .time-slot { font-size: 13px; color: var(--text-secondary); margin: 3px 0; }
+.chat-input-row { display: flex; gap: 8px; margin-top: 12px; }
+.chat-input-row input { flex: 1; padding: 12px 14px; border: 1.5px solid #e5e5ea; border-radius: 14px; font-family: var(--font); font-size: 15px; outline: none; }
+.chat-input-row input:focus { border-color: var(--accent); }
+.chat-actions { display: flex; gap: 8px; margin-top: 12px; }
+.chat-actions .btn { flex: 1; font-size: 14px; padding: 10px; }
+.btn-approve { background: var(--green); color: #fff; }
+.btn-approve:hover { background: #2db84d; }
+.btn-adjust { background: var(--orange); color: #fff; }
+.btn-adjust:hover { background: #e68600; }
+
+/* === Pomodoro Float Button === */
+.pomodoro-float {
+  position: fixed; bottom: 28px; right: 20px; z-index: 100;
+  width: 56px; height: 56px; border-radius: 50%;
+  background: var(--red); color: #fff; border: none; cursor: pointer;
+  box-shadow: 0 4px 20px rgba(255,59,48,0.35);
+  font-size: 24px; display: flex; align-items: center; justify-content: center;
+  transition: all 0.3s;
+}
+.pomodoro-float:hover { transform: scale(1.08); box-shadow: 0 6px 28px rgba(255,59,48,0.45); }
+.pomodoro-float.running { background: var(--green); box-shadow: 0 4px 20px rgba(52,199,89,0.35); animation: pulse 2s infinite; }
+@keyframes pulse { 0%, 100% { box-shadow: 0 4px 20px rgba(52,199,89,0.35); } 50% { box-shadow: 0 4px 36px rgba(52,199,89,0.55); } }
+
+/* === Pomodoro Modal === */
+.pomodoro-modal {
+  position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,0.35);
+  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  animation: fadeIn 0.3s;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.pomodoro-modal.hidden { display: none; }
+.pomodoro-card {
+  background: #fff; border-radius: 28px; padding: 32px; text-align: center;
+  width: 300px; box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+}
+.pomodoro-card .timer-display { font-size: 64px; font-weight: 200; letter-spacing: -2px; margin: 16px 0; font-variant-numeric: tabular-nums; }
+.pomodoro-card .timer-label { font-size: 14px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; }
+.pomodoro-card .timer-btns { display: flex; gap: 10px; margin-top: 20px; }
+.pomodoro-card .timer-btns .btn { flex: 1; }
+
+/* === Status Badge === */
+.status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 100px; font-size: 13px; font-weight: 500; }
+.status-badge.success { background: #e8f8ed; color: #1a7a32; }
+.status-badge.error { background: #ffe5e5; color: #c41e1e; }
+.status-badge.info { background: var(--accent-light); color: var(--accent); }
+
+/* === Step Bar === */
+.steps { display: flex; gap: 4px; margin-bottom: 24px; }
+.step { flex: 1; height: 3px; border-radius: 2px; background: #e5e5ea; transition: background 0.3s; }
+.step.done { background: var(--accent); }
+
+/* === Toast === */
+.toast {
+  position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 300;
+  padding: 12px 24px; border-radius: 100px; font-size: 14px; font-weight: 500;
+  background: #1d1d1f; color: #fff; box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  animation: toastIn 0.4s ease;
+}
+@keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(-12px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-thumb { background: #d1d1d6; border-radius: 2px; }
+
+/* Responsive */
+@media (max-width: 400px) {
+  .app-container { padding: 16px 12px 90px; }
+  .app-header h1 { font-size: 24px; }
+  .pomodoro-card { width: 260px; padding: 24px; }
+  .pomodoro-card .timer-display { font-size: 52px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Gradient Bubbles -->
+<div class="bubbles">
+  <div class="bubble"></div><div class="bubble"></div><div class="bubble"></div><div class="bubble"></div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast" style="display:none"></div>
+
+<!-- Pomodoro Float Button -->
+<button class="pomodoro-float" id="pomodoroFloatBtn" onclick="togglePomodoro()" title="番茄钟">&#x1F345;</button>
+
+<!-- Pomodoro Modal -->
+<div class="pomodoro-modal hidden" id="pomodoroModal">
+  <div class="pomodoro-card">
+    <div class="timer-label" id="timerLabel">专注时间</div>
+    <div class="timer-display" id="timerDisplay">25:00</div>
+    <div class="timer-btns">
+      <button class="btn btn-primary" id="timerToggleBtn" onclick="toggleTimer()">开始</button>
+      <button class="btn btn-secondary" onclick="togglePomodoro()">关闭</button>
+    </div>
+    <div style="margin-top:12px;font-size:13px;color:var(--text-secondary)">
+      已完成: <span id="pomodoroCount">0</span> 个番茄
+    </div>
+  </div>
+</div>
+
+<!-- App Container -->
+<div class="app-container">
+  <!-- Header -->
+  <div class="app-header">
+    <div class="logo">&#x2728;</div>
+    <h1>AI 智能规划助手</h1>
+    <p>你的专属 AI 日程规划师</p>
+  </div>
+
+  <!-- Step Dots -->
+  <div class="tab-dots" id="tabDots">
+    <div class="tab-dot active"></div><div class="tab-dot"></div><div class="tab-dot"></div><div class="tab-dot"></div>
+  </div>
+
+  <!-- Step Bar -->
+  <div class="steps" id="stepBar">
+    <div class="step done" id="step1"></div><div class="step" id="step2"></div><div class="step" id="step3"></div><div class="step" id="step4"></div>
+  </div>
+
+  <!-- PAGE 1: API Config -->
+  <div class="card" id="page1">
+    <h2 style="font-size:20px;font-weight:700;margin-bottom:4px">&#x1F511; 连接 AI</h2>
+    <p style="font-size:14px;color:var(--text-secondary);margin-bottom:16px">输入你的 DeepSeek API Key 开始使用</p>
+    <div class="input-group">
+      <label>DeepSeek API Key</label>
+      <input type="password" id="apiKeyInput" placeholder="sk-xxxxxxxxxxxxxxxx" autocomplete="off">
+    </div>
+    <div style="margin-bottom:12px">
+      <span id="connStatus" style="font-size:13px"></span>
+    </div>
+    <button class="btn btn-primary" id="testConnBtn" onclick="testConnection()">&#x1F517; 测试连接</button>
+    <button class="btn btn-primary" id="nextToPersonalityBtn" style="margin-top:8px;display:none" onclick="goToPage(2)">下一步 →</button>
+  </div>
+
+  <!-- PAGE 2: Personality -->
+  <div class="card" id="page2" style="display:none">
+    <h2 style="font-size:20px;font-weight:700;margin-bottom:4px">&#x1F3AD; 选择 AI 性格</h2>
+    <p style="font-size:14px;color:var(--text-secondary);margin-bottom:16px">选择一个你喜欢的 AI 交互风格</p>
+    <div class="bubble-group" id="personalityGroup">
+      <div class="bubble-option" onclick="selectPersonality(this, '友好贴心')">&#x1F917; 友好贴心</div>
+      <div class="bubble-option" onclick="selectPersonality(this, '专业高效')">&#x26A1; 专业高效</div>
+      <div class="bubble-option" onclick="selectPersonality(this, '幽默风趣')">&#x1F604; 幽默风趣</div>
+      <div class="bubble-option" onclick="selectPersonality(this, '严厉督促')">&#x1F3AF; 严厉督促</div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button class="btn btn-secondary" onclick="goToPage(1)">&#x2190; 上一步</button>
+      <button class="btn btn-primary" id="nextToDomainBtn" onclick="goToPage(3)" style="flex:1" disabled>下一步 →</button>
+    </div>
+  </div>
+
+  <!-- PAGE 3: Domain -->
+  <div class="card" id="page3" style="display:none">
+    <h2 style="font-size:20px;font-weight:700;margin-bottom:4px">&#x1F4CB; 选择领域</h2>
+    <p style="font-size:14px;color:var(--text-secondary);margin-bottom:16px">选择你需要 AI 辅助的领域（可多选）</p>
+    <div class="bubble-group" id="domainGroup">
+      <div class="bubble-option" onclick="toggleDomain(this, '日程规划')">&#x1F4C5; 日程规划</div>
+      <div class="bubble-option" onclick="toggleDomain(this, '学习计划')">&#x1F4DA; 学习计划</div>
+      <div class="bubble-option" onclick="toggleDomain(this, '健身饮食')">&#x1F4AA; 健身饮食</div>
+      <div class="bubble-option" onclick="toggleDomain(this, '工作项目')">&#x1F4BC; 工作项目</div>
+      <div class="bubble-option" onclick="toggleDomain(this, '综合全能')">&#x1F31F; 综合全能</div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button class="btn btn-secondary" onclick="goToPage(2)">&#x2190; 上一步</button>
+      <button class="btn btn-primary" id="startChatBtn" onclick="goToPage(4)" style="flex:1" disabled>开始对话 →</button>
+    </div>
+  </div>
+
+  <!-- PAGE 4: Chat -->
+  <div class="card" id="page4" style="display:none">
+    <h2 style="font-size:20px;font-weight:700;margin-bottom:12px">&#x1F4AC; AI 规划助手</h2>
+    <div class="chat-container" id="chatContainer">
+      <div class="chat-msg ai">
+        &#x1F44B; 你好！我是你的<span id="chatPersonality">AI 规划助手</span>。<br>
+        我会帮你制定<span id="chatDomains">日程计划</span>。请告诉我你想怎么安排今天，或者直接说「帮我规划今天」！
+      </div>
+    </div>
+    <div class="chat-input-row">
+      <input type="text" id="chatInput" placeholder="输入你的需求..." onkeydown="if(event.key==='Enter')sendMessage()">
+      <button class="btn btn-primary btn-small" onclick="sendMessage()">发送</button>
+    </div>
+    <div class="chat-actions" id="chatActions" style="display:none">
+      <button class="btn btn-approve" onclick="approveSchedule()">&#x2705; 采纳此计划</button>
+      <button class="btn btn-adjust" onclick="adjustSchedule()">&#x1F504; 调整计划</button>
+    </div>
+    <div style="margin-top:12px">
+      <button class="btn btn-secondary btn-small" onclick="goToPage(3)" style="width:auto;font-size:14px">&#x2190; 重新配置</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// === State ===
+var STATE = {
+  apiKey: localStorage.getItem('deepseek_api_key') || '',
+  apiVerified: false,
+  personality: localStorage.getItem('ai_personality') || '',
+  domains: JSON.parse(localStorage.getItem('ai_domains') || '[]'),
+  currentPage: 1,
+  scheduleGenerated: false,
+  currentSchedule: '',
+  pomodoroRunning: false,
+  pomodoroTime: 25 * 60,
+  pomodoroInterval: null,
+  pomodoroIsBreak: false,
+  pomodoroCount: parseInt(localStorage.getItem('pomodoro_count') || '0')
+};
+
+// === Init ===
+function init() {
+  if (STATE.apiKey) {
+    document.getElementById('apiKeyInput').value = STATE.apiKey;
+    document.getElementById('testConnBtn').click();
+  }
+  document.getElementById('pomodoroCount').textContent = STATE.pomodoroCount;
+  updateTimerDisplay();
+}
+init();
+
+// === Navigation ===
+function goToPage(page) {
+  if (page === 2 && !STATE.apiVerified) {
+    showToast('请先连接 API Key');
+    return;
+  }
+  if (page === 3 && !STATE.personality) {
+    showToast('请先选择 AI 性格');
+    return;
+  }
+  if (page === 4 && STATE.domains.length === 0) {
+    showToast('请至少选择一个领域');
+    return;
+  }
+  if (page === 4) {
+    updateChatGreeting();
+  }
+  STATE.currentPage = page;
+  for (var i = 1; i <= 4; i++) {
+    var el = document.getElementById('page' + i);
+    if (el) el.style.display = i === page ? '' : 'none';
+  }
+  updateDots(page);
+  updateSteps(page);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function updateDots(page) {
+  var dots = document.querySelectorAll('.tab-dot');
+  for (var i = 0; i < dots.length; i++) {
+    dots[i].classList.toggle('active', i + 1 === page);
+  }
+}
+
+function updateSteps(page) {
+  for (var i = 1; i <= 4; i++) {
+    var el = document.getElementById('step' + i);
+    if (el) el.classList.toggle('done', i <= page);
+  }
+}
+
+// === Toast ===
+var toastTimer = null;
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(function() { t.style.display = 'none'; }, 2500);
+}
+
+// === API Connection ===
+function testConnection() {
+  var key = document.getElementById('apiKeyInput').value.trim();
+  if (!key) { showToast('请输入 API Key'); return; }
+  var btn = document.getElementById('testConnBtn');
+  var status = document.getElementById('connStatus');
+  btn.disabled = true;
+  btn.textContent = '正在测试...';
+  status.innerHTML = '<span class="status-badge info">检测中...</span>';
+
+  var xhr = new XMLHttpRequest();
+  xhr.open('POST', 'https://api.deepseek.com/v1/chat/completions', true);
+  xhr.setRequestHeader('Content-Type', 'application/json');
+  xhr.setRequestHeader('Authorization', 'Bearer ' + key);
+  xhr.onload = function() {
+    btn.disabled = false;
+    btn.textContent = '测试连接';
+    if (xhr.status === 200) {
+      STATE.apiKey = key;
+      STATE.apiVerified = true;
+      localStorage.setItem('deepseek_api_key', key);
+      status.innerHTML = '<span class="status-badge success">连接成功</span>';
+      document.getElementById('nextToPersonalityBtn').style.display = '';
+      showToast('API 连接成功！');
+    } else {
+      var msg = '连接失败';
+      try { var err = JSON.parse(xhr.responseText); msg = err.error && err.error.message ? err.error.message : msg; } catch(e) {}
+      status.innerHTML = '<span class="status-badge error">' + msg + '</span>';
+      STATE.apiVerified = false;
+    }
+  };
+  xhr.onerror = function() {
+    btn.disabled = false;
+    btn.textContent = '测试连接';
+    status.innerHTML = '<span class="status-badge error">网络错误</span>';
+    STATE.apiVerified = false;
+  };
+  xhr.send(JSON.stringify({ model: 'deepseek-chat', messages: [{ role: 'user', content: 'hi' }], max_tokens: 5 }));
+}
+
+// === Personality ===
+function selectPersonality(el, name) {
+  var opts = document.querySelectorAll('#personalityGroup .bubble-option');
+  for (var i = 0; i < opts.length; i++) { opts[i].classList.remove('selected'); }
+  el.classList.add('selected');
+  STATE.personality = name;
+  localStorage.setItem('ai_personality', name);
+  document.getElementById('nextToDomainBtn').disabled = false;
+}
+
+// === Domain ===
+function toggleDomain(el, name) {
+  if (el.classList.contains('domain-selected')) {
+    el.classList.remove('domain-selected');
+    STATE.domains = STATE.domains.filter(function(d) { return d !== name; });
+  } else {
+    el.classList.add('domain-selected');
+    STATE.domains.push(name);
+  }
+  localStorage.setItem('ai_domains', JSON.stringify(STATE.domains));
+  document.getElementById('startChatBtn').disabled = STATE.domains.length === 0;
+}
+
+// === Chat ===
+function updateChatGreeting() {
+  document.getElementById('chatPersonality').textContent = STATE.personality || 'AI 规划助手';
+  document.getElementById('chatDomains').textContent = STATE.domains.join('、') || '日程计划';
+}
+
+function getSystemPrompt() {
+  var prompts = {
+    '友好贴心': '你是一位友好贴心的 AI 规划助手。语气温暖、鼓励，多用 emoji 和关怀的话语。',
+    '专业高效': '你是一位专业高效的 AI 规划助手。语气干练、精准，直击要点，用语简洁专业。',
+    '幽默风趣': '你是一位幽默风趣的 AI 规划助手。语气轻松活泼，偶尔开个小玩笑，让规划变得有趣。',
+    '严厉督促': '你是一位严厉督促的 AI 规划助手。语气严格但不刻薄，像私人教练一样督促用户执行计划。'
+  };
+  var domains = STATE.domains.join('、');
+  return (prompts[STATE.personality] || '') +
+    '用户关注的领域：' + domains + '。' +
+    '当用户提出日程规划需求时，请以 JSON 格式返回一个日程表。格式：' +
+    '{"schedule":[{"time":"08:00-09:00","task":"任务名称","detail":"详细说明"}],"summary":"总结建议"}。' +
+    '如果用户没有明确说需要日程表，就正常对话。请用中文回复。';
+}
+
+function sendMessage() {
+  var input = document.getElementById('chatInput');
+  var msg = input.value.trim();
+  if (!msg) return;
+  if (!STATE.apiKey) { showToast('请先配置 API Key'); return; }
+
+  addChatMsg(msg, 'user');
+  input.value = '';
+
+  var thinkingDiv = addChatMsg('思考中...', 'ai');
+
+  var xhr = new XMLHttpRequest();
+  xhr.open('POST', 'https://api.deepseek.com/v1/chat/completions', true);
+  xhr.setRequestHeader('Content-Type', 'application/json');
+  xhr.setRequestHeader('Authorization', 'Bearer ' + STATE.apiKey);
+  xhr.onload = function() {
+    thinkingDiv.remove();
+    if (xhr.status === 200) {
+      var data = JSON.parse(xhr.responseText);
+      var reply = data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content : '抱歉，我暂时无法回复。';
+      processAIReply(reply);
+    } else {
+      addChatMsg('请求失败，请检查网络或 API Key。', 'ai');
+    }
+  };
+  xhr.onerror = function() {
+    thinkingDiv.remove();
+    addChatMsg('网络错误，请检查连接后重试。', 'ai');
+  };
+  var messages = [
+    { role: 'system', content: getSystemPrompt() },
+    { role: 'user', content: msg }
+  ];
+  xhr.send(JSON.stringify({ model: 'deepseek-chat', messages: messages, temperature: 0.7, max_tokens: 2000 }));
+}
+
+function processAIReply(reply) {
+  var jsonMatch = reply.match(/\{[\s\S]*"schedule"[\s\S]*\}/);
+  var scheduleJson = null;
+  if (jsonMatch) {
+    try { scheduleJson = JSON.parse(jsonMatch[0]); } catch(e) {}
+  }
+  if (scheduleJson && scheduleJson.schedule) {
+    STATE.currentSchedule = JSON.stringify(scheduleJson);
+    STATE.scheduleGenerated = true;
+    var textPart = reply.replace(jsonMatch[0], '');
+    if (!textPart.trim()) textPart = '以下是我为你制定的日程安排：';
+    addChatMsg(textPart + renderScheduleCard(scheduleJson), 'ai');
+    document.getElementById('chatActions').style.display = 'flex';
+  } else {
+    addChatMsg(reply, 'ai');
+    document.getElementById('chatActions').style.display = 'none';
+  }
+}
+
+function renderScheduleCard(schedule) {
+  var html = '<div class="schedule-card"><h4>' + (schedule.summary || '日程安排') + '</h4>';
+  for (var i = 0; i < schedule.schedule.length; i++) {
+    var s = schedule.schedule[i];
+    html += '<div class="time-slot"><strong>' + s.time + '</strong> — ' + s.task;
+    if (s.detail) html += ' <span style="color:#86868b">(' + s.detail + ')</span>';
+    html += '</div>';
+  }
+  html += '</div>';
+  return html;
+}
+
+function addChatMsg(text, role) {
+  var container = document.getElementById('chatContainer');
+  var div = document.createElement('div');
+  div.className = 'chat-msg ' + role;
+  div.innerHTML = text;
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+  return div;
+}
+
+function approveSchedule() {
+  addChatMsg('太好了！我已经采纳了这个计划，会按照安排执行。' + String.fromCodePoint(0x1F4AA), 'user');
+  document.getElementById('chatActions').style.display = 'none';
+  STATE.scheduleGenerated = false;
+  showToast('计划已采纳！加油！');
+}
+
+function adjustSchedule() {
+  addChatMsg('请帮我调整一下这个计划。', 'user');
+  document.getElementById('chatActions').style.display = 'none';
+}
+
+// === Pomodoro Timer ===
+function togglePomodoro() {
+  var modal = document.getElementById('pomodoroModal');
+  modal.classList.toggle('hidden');
+}
+
+function updateTimerDisplay() {
+  var mins = Math.floor(STATE.pomodoroTime / 60);
+  var secs = STATE.pomodoroTime % 60;
+  document.getElementById('timerDisplay').textContent =
+    String(mins).padStart ? String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0') :
+    (mins < 10 ? '0' : '') + mins + ':' + (secs < 10 ? '0' : '') + secs;
+}
+
+function toggleTimer() {
+  if (STATE.pomodoroRunning) {
+    clearInterval(STATE.pomodoroInterval);
+    STATE.pomodoroRunning = false;
+    document.getElementById('timerToggleBtn').textContent = '开始';
+    document.getElementById('pomodoroFloatBtn').classList.remove('running');
+  } else {
+    STATE.pomodoroRunning = true;
+    document.getElementById('timerToggleBtn').textContent = '暂停';
+    document.getElementById('pomodoroFloatBtn').classList.add('running');
+    STATE.pomodoroInterval = setInterval(function() {
+      STATE.pomodoroTime--;
+      updateTimerDisplay();
+      if (STATE.pomodoroTime <= 0) {
+        clearInterval(STATE.pomodoroInterval);
+        STATE.pomodoroRunning = false;
+        document.getElementById('timerToggleBtn').textContent = '开始';
+        document.getElementById('pomodoroFloatBtn').classList.remove('running');
+        if (STATE.pomodoroIsBreak) {
+          STATE.pomodoroTime = 25 * 60;
+          STATE.pomodoroIsBreak = false;
+          document.getElementById('timerLabel').textContent = '专注时间';
+          showToast('休息结束，开始专注！');
+        } else {
+          STATE.pomodoroCount++;
+          localStorage.setItem('pomodoro_count', STATE.pomodoroCount);
+          document.getElementById('pomodoroCount').textContent = STATE.pomodoroCount;
+          STATE.pomodoroTime = 5 * 60;
+          STATE.pomodoroIsBreak = true;
+          document.getElementById('timerLabel').textContent = '休息时间';
+          showToast('专注完成！休息一下吧');
+        }
+        updateTimerDisplay();
+        setTimeout(function() {
+          if (!STATE.pomodoroRunning && !document.getElementById('pomodoroModal').classList.contains('hidden')) {
+            toggleTimer();
+          }
+        }, 2000);
+      }
+    }, 1000);
+  }
+}
+
+// === Keyboard shortcut ===
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    var modal = document.getElementById('pomodoroModal');
+    if (!modal.classList.contains('hidden')) modal.classList.add('hidden');
+  }
+});
+
+// === Restore state ===
+(function() {
+  if (STATE.personality) {
+    var opts = document.querySelectorAll('#personalityGroup .bubble-option');
+    for (var i = 0; i < opts.length; i++) {
+      if (opts[i].textContent.indexOf(STATE.personality) >= 0) opts[i].classList.add('selected');
+    }
+    document.getElementById('nextToDomainBtn').disabled = false;
+  }
+  if (STATE.domains.length > 0) {
+    var dopts = document.querySelectorAll('#domainGroup .bubble-option');
+    for (var i = 0; i < dopts.length; i++) {
+      for (var j = 0; j < STATE.domains.length; j++) {
+        if (dopts[i].textContent.indexOf(STATE.domains[j]) >= 0) dopts[i].classList.add('domain-selected');
+      }
+    }
+    document.getElementById('startChatBtn').disabled = false;
+  }
+  if (STATE.apiVerified) {
+    document.getElementById('nextToPersonalityBtn').style.display = '';
+    document.getElementById('connStatus').innerHTML = '<span class="status-badge success">已保存的 Key</span>';
+  }
+})();
+</script>
+</body>
 </html>
